@@ -14,7 +14,7 @@
 
 与一般的物体检测不同，人脸检测的特点是长宽比的取值范围较小（从1:1到1:1.5），但是尺度范围很大（从几个像素到几千像素）。通过使用多任务损失（ coming from strongly supervised and self-supervised signals），我们提出一个SOTA的密度人脸定位方法。
 
-![avatar](/1.png"Figure 1")
+<img src="/1.png" alt="avatar" title="Figure 1" style="zoom:80%;" />
 
 典型的人脸检测训练过程包括分类和box回归loss
 
@@ -64,7 +64,7 @@ $$
 
 * **Mesh Decoder.** 直接使用现成的mesh decoder（mesh convolution和mesh up-sampling），是一个基于快速局部谱滤波的图卷积方法。为了进一步加速，还使用了一个形状纹理联合decoder
 
-  ![avatar](/3.png"Figure 3")
+  <img src="/3.png" alt="avatar" title="Figure 3" style="zoom:80%;" />
 
   下面简要介绍一下图卷积的概念并指出为什么可以用作快速解码。如Figure 3(a)所示，一个2D的卷积操作是在欧几里得网格感受野上的“带权重的核相邻求和”操作。图卷积的概念与之类似，如Figure 3(b)所示。但是图上的相邻距离为两个顶点间的最少边数量。定义一个有颜色的面部网格（coloured face mesh）为$\mathcal{G=(V,E)}$，其中$\mathcal{V}\in \mathbb{R}^{n\times6}$，是包含结点形状和纹理信息的一组面部顶点的集合。$\mathcal{E}\in \{0,1\}^{n\times n}$是一个稀疏的临近矩阵，它编码了图中各顶点的连接状态。图拉普拉斯矩阵定义为$L=D-\mathcal{E}\in\mathbb{R}^{n\times n}$，其中$D\in\mathbb{R}^{n\times n}$是一个对角阵，有$D_{ii}=\sum_j\mathcal{E_{ij}}$
 
@@ -89,3 +89,22 @@ $$
   $$
   其中$W$和$H$是anchor裁切$I_{i,j}^*$的宽和高。
 
+
+
+## Experiments
+
+### Dataset
+
+WIDER FACE数据集由32203张图片组成，共包含393703个人脸边界框，这些人脸在尺度、姿态、表情、遮挡和光照等条件的差异变化很大。WIDER FACE数据集被划分为训练集（40%），验证集（10%）和测试集（50%），划分方法为根据其61个场景分类随机划分。
+
+* **Extra Annotations.** 如Figure 4和Table 1所示，定义5个图像质量的等级（根据做标记的难度）并在WIDER FACE训练集和验证集中，标记出的人脸上标记5个关键点（眼中心，鼻头和嘴角）。训练集一共有84.6k人脸，验证集有18.5k个人脸。
+
+  <img src="4.png" alt="avatar" title="Figure 4" style="zoom:80%;" />
+
+<img src="t1.png" alt="avatar" title="Table 1" style="zoom:80%;" />
+
+
+
+### Implementation Detail
+
+* **Feature Pyramid.** 
