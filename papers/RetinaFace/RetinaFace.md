@@ -38,7 +38,7 @@
 * **Context Modelling**：为了增强模型在捕捉小脸上的上下文推理能力，SSH和PyramidBox在特征图金字塔上使用了上下文模块在欧几里得网格（Euclidean grids）上增大感受野。为了增强CNN对柔性变换（non-rigid transformation）的建模能力，形变卷积网络（deformable convolution network，DCN）使用一个形变层来对几何变换进行建模。WIDER Face 2018的冠军方法指出刚性（expansion，扩张）和柔性（deformation，形变）的上下文建模对提升人脸检测效果是互补（complementary）和正交（orthogonal）的。
 * **Multi-task Learning**：由于对齐的人脸形状能够为人脸分类提供更高质量的特征，人脸检测和对齐的联合算法应用广泛。在Mask R-CNN中，增加与已有分支平行的mask预测分支显著地提升了检测效果。
 
-
+![avatar](/2.png"Figure 2")
 
 ## RetinaFace
 
@@ -66,4 +66,26 @@ $$
 
   ![avatar](/3.png"Figure 3")
 
-  下面简要介绍一下图卷积的概念并指出为什么可以用作快速解码。如Figure 3(a)所示，一个2D的卷积操作是在欧几里得网格感受野上的“带权重的核相邻求和”操作。
+  下面简要介绍一下图卷积的概念并指出为什么可以用作快速解码。如Figure 3(a)所示，一个2D的卷积操作是在欧几里得网格感受野上的“带权重的核相邻求和”操作。图卷积的概念与之类似，如Figure 3(b)所示。但是图上的相邻距离为两个顶点间的最少边数量。定义一个有颜色的面部网格（coloured face mesh）为$\mathcal{G=(V,E)}$，其中$\mathcal{V}\in \mathbb{R}^{n\times6}$，是包含结点形状和纹理信息的一组面部顶点的集合。$\mathcal{E}\in \{0,1\}^{n\times n}$是一个稀疏的临近矩阵，它编码了图中各顶点的连接状态。图拉普拉斯矩阵定义为$L=D-\mathcal{E}\in\mathbb{R}^{n\times n}$，其中$D\in\mathbb{R}^{n\times n}$是一个对角阵，有$D_{ii}=\sum_j\mathcal{E_{ij}}$
+
+  卷积核为$g_{\theta}$的图卷积可以表示为一个$K$阶的递归的切比雪夫多项式：
+  $$
+  y=g_{\theta}(L)x=\sum\limits_{k=0}^{K-1}\theta_kT_k(\tilde{L})x,
+  \quad\quad\quad(2)
+  $$
+  其中$\theta\in\mathbb{R}^K$是一个切比雪夫系数向量，$T_k(\tilde L)\in \mathbb{R}^n$是$k$阶切比雪夫多项式在缩放后的拉普拉斯矩阵$\tilde L$求的值。
+
+  令$\bar x_k=T_k(\tilde L)x\in \mathbb{R}^n$，可以递归地计算$\bar x_k=2\tilde L\bar x_{k-1}-\bar x_{k-2},\bar x_0=x,\bar x_1=\tilde Lx$.
+
+  整个操作（filtering operation）非常高效，包括$K$个稀疏矩阵-向量乘法和一次稠密矩阵-向量乘法$y=g_{\theta}(L)x=[\bar x_0,...,\bar x_{K-1}]\theta$.
+
+* **Differentiable Renderer.** 得到预测的形状和纹理参数$P_{ST}\in \mathbb{R}^{128}$之后，使用一个高效的可微分3Dmesh renderer来将一个有颜色的mesh$\mathcal{D}_{P_{ST}}$投影到2D平面，相机参数为$P_{cam}=[x_c,y_c,z_c,x_c',y_c',z_c',f_c]$（相机位置，相机姿态和焦距focal length），光照参数为$P_{ill}=[x_l,y_l,z_l,r_l,g_l,b_l,r_a,g_a,b_a]$（光源位置，色值（color values，色彩明度）和环境光颜色）
+
+* **Dense Regression Loss.** 获取渲染后的2D面部图像$\mathcal{R}(\mathcal{D}_{P_{ST}},P_{cam},P_{ill})$，使用下述函数对渲染图和原图的像素差异进行比较：
+  $$
+  L_{pixel}=\frac{1}{W*H}\sum\limits_i^W\sum\limits_j^H
+  \lVert\mathcal{R}(\mathcal{D}_{P_{ST}},P_{cam},P_{ill})_{i,j}-I_{i,j}^*\rVert_1,
+  \quad\quad\quad (3)
+  $$
+  其中$W$和$H$是anchor裁切$I_{i,j}^*$的宽和高。
+
