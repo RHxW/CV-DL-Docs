@@ -107,4 +107,19 @@ WIDER FACE数据集由32203张图片组成，共包含393703个人脸边界框�
 
 ### Implementation Detail
 
-* **Feature Pyramid.** 
+* **Feature Pyramid.** RetinaFace使用特征图金字塔$P_2\sim P_6$，其中$P_2\sim P_5$是ResNet的$C_2\sim C_5$的输出，$P_6$是在$C_5$的基础上用一个$3\times3$，stride=2的卷积计算得到的。ResNet是用ImageNet-11k数据集预训练的ResNet-152分类网络
+
+* **Context Module.** 根据SSH和PyramidBox，同样在五个特征图上使用独立的上下文模块来增大感受野并增强刚性上下文建模能力。借鉴了WIDER Face挑战2018冠军的经验，同样将侧连接（lateral connections）和上下文模块中的全部$3\times3$卷积替换为可变形卷积网络（deformable convolution network ，DCN），进一步增强柔性上下文建模能力。
+
+* **Loss Head.** 对于负anchors，只有分类loss。对于正anchors，计算前文提到的多任务loss。在不同特征图（$H_n\times W_n\times256,n\in\{2,...,6\}.$）使用一个共享的loss head（$1\times1$卷积）。mesh decoder使用一个计算量很小的预训练模型，可以进行高效推理。
+
+* **Anchor Settings.** 如Table 2 中所示，在$P_2\sim P_6$的特征图上用确定尺寸的anchors。$P_2$通过将小anchors平铺的方式来捕捉小尺寸人脸，这种方式计算量更大，假正类更多。将scale step设置为$2^{1/3}$，长宽比为1：1.当输入尺寸为$640\times 640$的时候，anchors在特征图金字塔上可以覆盖从$16\times 16$到$406\times 406$的尺度范围。总共有102300个anchors，而且其中75%都来自于$P_2$.
+
+  ![avatar](/t2.png"Table 2")
+
+  训练过程中，如果一个anchor和一个gt box的IoU大于0.5，就将二者相匹配，小于0.3就将anchor和background相匹配。未匹配的anchors在训练过程会被忽略掉。由于绝大部分（>99%）anchors在匹配完是负类，使用标注OHEM（Online Hard Example Mining）来缓解正样本和负样本之间严重的不平衡问题。具体来说，根据负anchors的loss值排序后取靠前的部分，保证负样本和正样本的比例为3：1
+
+* **Data Augmentation.** 由于在WIDER FACE训练集中大约有20%的小尺寸人脸，我们从原图上随机剪裁正方形图片并resize到$640\times 640$来生成更大的训练集。具体来说，裁切的尺寸是原图短边的$0.3\sim1.0$倍。对于位于剪裁边界上的人脸，如果其中心在剪裁范围内则保留。除了随机剪裁外，还使用概率为0.5的随机水平翻转和颜色失真来对数据进行增广。
+
+
+
