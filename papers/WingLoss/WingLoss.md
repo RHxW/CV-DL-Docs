@@ -6,7 +6,7 @@
 
 限制场景下人脸关键点定位精度已经很高，难点是非限制场景下鲁棒的高精度关键点定位任务。其影响因素有很多，比如姿态，表情，光照，模糊和遮挡等。
 
-深度学习的一个关键方向是定义一个loss函数，使获得更好学习表示的能力。大多数现有的人脸关键点定位使用L2 loss。但是L2 loss对异常值较敏感，再Fast R-CNN算法中也提到过这个问题，可以将L2 loss 替换为L1 loss 来缓解这个问题。为了进一步减轻这一影响，提出新的loss函数，称为Wing loss，如Figure 1
+深度学习的一个关键方向是定义一个loss函数，使获得更好学习表示的能力。大多数现有的人脸关键点定位使用L2 loss。但是L2 loss对异常值较敏感，在Fast R-CNN算法中也提到过这个问题，可以将L2 loss 替换为L1 loss 来缓解这个问题。为了进一步减轻这一影响，提出新的loss函数，称为Wing loss，如Figure 1
 
 ![avatar](1.png"Figure 1")
 
@@ -61,7 +61,7 @@ L1和L2loss的梯度大小分别为1和$|x|$，对应的优化步长量级应该
 
 这种形状的loss函数适合处理较小的位置误差。但是在in-the-wild人脸的关键点检测中我们可能遇到极端姿态，其与初始的关键点位置误差可能很大。这种情况下，loss函数应该能够根据这些大误差值迅速恢复到对应数值。这就需要loss函数行为更像L1或L2.由于L2对异常值敏感，我们倾向于L1.
 
-上述直观的观点描述了这样的一个loss函数，其对于小误差应该像一个带偏置项log函数，对于大误差像L1.这样的复合函数可以被定义为：
+上述观点直观地描述了这样的一个loss函数，其对于小误差应该像一个带偏置项log函数，对于大误差像L1.这样的复合函数可以被定义为：
 $$
 wing(x)=
 \begin{cases}
@@ -71,6 +71,16 @@ w\ln(1+|x|/\epsilon) \quad\quad \mathrm{if}|x|<w \\
 \quad\quad\quad(5)
 $$
 其中非负项$w$将非线性部分的范围设置为$(-w,w)$，$\epsilon$限制了非线性区域的弧度，$C=w-w\ln(1+w/\epsilon)$是一个常量，将线性和非线性两部分光滑地连接到一起。
+$$
+Wing(y,\hat y)=
+\begin{cases}
+w\ln(1+|\frac{y-\hat y}{\epsilon}|) \quad\quad \mathrm{if}|(y-\hat y)|<w \\
+|y-\hat y|-C \quad\quad\quad\quad \mathrm{otherwise}
+\end{cases}
+\\
+C=w-w\ln(1+w/\epsilon)
+$$
+其中$y$是gt的heatmap，$\hat y$是预测的heatmap
 
 注意不要将$\epsilon$设置的很小，会引起训练过程非常不稳定，在误差很小的时候出现梯度爆炸。实际上Wing loss的非线性部分只是取了$\ln(x)$在$[\epsilon/w,1+\epsilon/w]$间的曲线，然后再X和Y方向用一个因子$w$来缩放。并且还使用了将$wing(0)=0$的变换强制保持loss函数的连续性。
 
