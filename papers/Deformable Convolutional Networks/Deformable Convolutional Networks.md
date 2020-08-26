@@ -16,7 +16,7 @@
 
 本文提出两个新模型，它们可以显著提升CNN对于几何变换的建模能力。
 
-<img src="1.png" alt="avatar" title="Figure 1" style="zoom:80%;" />
+<img src="1.png" alt="figure1" title="Figure 1" style="zoom:80%;" />
 
 第一个是可变形卷积，在传统卷积层的栅格取样位置加入了2D偏移量，使取样格栅自由形变成为可能。如Figure 1所示。偏移量是使用额外的卷积层在之前的特征图上学到的。因此，从输入的特征上通过一个局部、稠密且有适应性的方法来检测形变（信息）。
 
@@ -65,7 +65,7 @@ G(\mathrm{q,p})=g(q_x,p_x)\cdot g(q_y,p_y),
 $$
 其中$g(a,b)=max(0,1-|a-b|)$.公式(3)计算速度很快，因为$G(\mathrm{q,p})$除了几个$\mathrm{q}$外都是非零的。
 
-<img src="2.png" alt="avatar" title="Figure 2" style="zoom:80%;" />
+<img src="2.png" alt="figure2" title="Figure 2" style="zoom:80%;" />
 
 如Figure 2所示，同一个输入特征图经过一个卷积层得到偏移量。其空间分辨率和扩张和当前卷积层相同（图中仍为$3\times3$扩张为1的卷积核）。输出的偏移特征图和输入的空间分辨率一致。通道数$2N$对应$N$个2D偏移量。训练过程两部分卷积同时训练。为了能够学到偏移量，梯度反向传播时要经过公式(3)和(4)的双线性操作。
 
@@ -87,11 +87,35 @@ $$
 $$
 一般来说，$\Delta \mathrm{p}_{ij}$是小数。公式(6)通过公式(3)和(4)的双线性插值来实现。
 
-<img src="3.png" alt="avatar" title="Figure 3" style="zoom:80%;" />
+<img src="3.png" alt="figure3" title="Figure 3" style="zoom:80%;" />
 
-Figure 3展示了如何获取偏移量。首先RoI Pooling（公式(5)）生成池化后的特征图。在特征图上使用一个全连接层生成归一化的偏移量$\Delta \widehat {\mathrm{p}}_{ij}$，然后将它变换成公式(6)中的偏移量$\Delta \mathrm{p}_{ij}$，方法是与RoI的宽高进行逐元素相乘$\Delta \mathrm{p}_{ij}=\gamma \cdot \Delta \widehat{\mathrm{p}}_{ij} \circ (w,h)$，其中$\gamma$是一个预定义好的标量数，用来调节偏移量的量级，按经验来讲设置成$\gamma=0.1$.为了使偏移量学习结果与RoI尺寸无关，对其进行归一化操作很有必要。
+Figure 3展示了如何获取偏移量。首先RoI Pooling（公式(5)）生成池化后的特征图。在特征图上使用一个全连接层生成归一化的偏移量$\Delta \widehat {\mathrm{p}}_{ij}$，然后将它变换成公式(6)中的偏移量$\Delta \mathrm{p}_{ij}$，方法是与RoI的宽高进行逐元素相乘$\Delta \mathrm{p}_{ij}=\gamma \cdot \Delta \widehat{\mathrm{p}}_{ij} \circ (w,h)$，其中$\gamma$是一个预定义好的标量数，用来调节偏移量的量级，按经验来讲设置成$\gamma=0.1$.为了使偏移量学习结果与RoI尺寸无关，对其进行归一化操作很有必要。全连接层通过反向传播来学习，其细节于附录A中。
 
-<img src="4.png" alt="avatar" title="Figure 4" style="zoom:80%;" />
+<img src="4.png" alt="figure4" title="Figure 4" style="zoom:80%;" />
 
 **Position-Sensitive(PS) RoI Pooling：**是全卷积网络且与RoI Pooling不同。经过一个卷积层，全部特征图首先变为$k^2$个得分图（score maps）对应每一个分类（对$C$个物体类别有$C+1$个分类），如Figure 4中下方分支所示。不需要区分类别，这个得分图表示为$\{\mathrm{x}_{i,j}\}$其中$(i,j)$枚举全部区域（bins）。在这些得分图上进行池化操作。第$(i,j)$个区域的输出值是这个区域对应的一个得分图$\mathrm{x}_{i,j}$的和。简而言之，公式(5)中的RoI Pooling的不同之处在于一般的特征图$\mathrm{x}$被替换为一个特殊的positive-sensitive的得分图$\mathrm{x}_{i,j}$.
+
+对于可变形PS RoI pooling，公式(6)的唯一改变是$\mathrm{x}$也修改成$\mathrm{x}_{ij}$.但是，偏移量的学习不同，遵循全卷积原则，如Figure 4中上方分支所示，一个卷积层生成全空间分辨率（全尺寸？）偏移场（offset fields）。对每个RoI（也对每个分类），在field上使用PS RoI pooling获取归一化后的偏移量$\Delta \widehat{\mathrm{p}}_{ij}$，这个值随后会被转换成真实的偏移量$\Delta\mathrm{p}_{ij}$，与可变形RoI pooling所采用的方法一致。
+
+### Deformable ConvNets
+
+可变形卷积和RoI pooling模块的简单版本（plain version）都有相同的输入和输出。因此它们可以轻松地替换掉现有CNN中对应的部分。在训练过程中，这些为了学习偏移量而后添加的卷积和全连接层的权重初始值都为0。它们的学习率都被设置成$\beta$乘以现有学习率（默认$\beta=1$，Fast R-CNN中全连接层$\beta=0.01$）。使用经过公式(3)和(4)的双线性插值操作的反向传播来训练。
+
+为了将可变形ConvNets与现有SOTA的CNN框架结合起来，我们注意到这些框架由两部分组成。第一部分，使用一个深度全卷积网络在整张输入图片上生成特征图。第二部分，使用一个浅层任务网络根据特征图生成结果。接下来详细介绍这两个步骤。
+
+**Deformable Convolution for Feature Extraction** 采用两个SOTA架构来提取特征，分别是：ResNet101和一个经过修改的Inception-ResNet。它们都在ImageNet分类数据集上进行了预训练。
+
+原始的Inception-ResNet是用来做图片识别的。它存在特征偏移的问题，对于密集预测任务是有困难的。为了解决特征对齐问题而对模型做了修改。将修改后的模型称为"Aligned-Inception-ResNet"，其细节于附录B。
+
+这两个模型都包含多个卷积块，一个平均池化和一个1000分类的全连接层，其分类对应ImageNet的类别。移除了平均池化和全连接层。将一个随机初始化权重的$1\times1$卷积加在最后来将通道维度降到1024.按照惯例，最后一个卷积块的有效步长从32像素降低为16像素来增加特征图的分辨率。而且，特别地，在最后一个块的开始位置，步长从2调为1（对ResNet-101和Aligned-Inception-ResNet来说都是“conv5”）。对应补偿，将这个块中的全部卷积滤波器（卷积核尺寸>1）的扩张从1改为2.
+
+可以在最后几个卷积层（卷积核尺寸>1）上使用可变形卷积。
+
+**Segmentation and Detection Networks** 一个特定任务的网络是在特征提取网络提取的特征图之上建立的。下文中的$C$代表类别数。
+
+*DeepLab* 是语义分割领域的一个SOTA方法。通过在特征图上使用$1\times1$卷积层来生成$(C+1)$个特征图来表示元素级的类别评分。接下来使用softmax层输出元素级概率。
+
+*Category-Aware* RPN 几乎与Fast R-CNN中的RPN一模一样，除了将两个类别（是否为物体）的卷积分类器替换为$(C+1)$类别的卷积分类器。可以视为简单版的SSD
+
+*Faster R-CNN* 是SOTA检测器。
 

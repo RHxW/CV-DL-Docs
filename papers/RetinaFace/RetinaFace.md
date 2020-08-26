@@ -14,7 +14,7 @@
 
 与一般的物体检测不同，人脸检测的特点是长宽比的取值范围较小（从1:1到1:1.5），但是尺度范围很大（从几个像素到几千像素）。通过使用多任务损失（ coming from strongly supervised and self-supervised signals），我们提出一个SOTA的密度人脸定位方法。
 
-<img src="/1.png" alt="avatar" title="Figure 1" style="zoom:80%;" />
+<img src="1.png" alt="figure1" title="Figure 1" style="zoom: 67%;" />
 
 典型的人脸检测训练过程包括分类和box回归loss
 
@@ -35,10 +35,10 @@
 
 * **Image pyramid v.s. feature pyramid**：滑动窗口的模式，在一个图像网格上使用一个分类器的方法可以追溯到几十年前。之后特征图金字塔出现，在多尺度特征图上的滑动anchor迅速统治了人脸检测领域。
 * **Two-stage v.s. single-stage**：目前的人脸检测方法继承了一些一般物体检测方法的成果，可以分为2大类：二阶段方法（如：Faster R-CNN）和一阶段方法（如：SSD和RetinaNet）。二阶段方法的机制是"propoasl and refinement"，其特点是高定位准确率。与之相对的单阶段方法密集地对人脸位置和尺度进行采样，这样做的结果是在训练时会引起很严重的正负样本不平衡问题。为了解决这个不平衡问题，广泛使用了采样加权法。与二阶段方法相比，单阶段方法更高效且有更高的召回率，但同时也有更高假阳率的风险，而且定位准确率上也不如二阶段方法。
-* **Context Modelling**：为了增强模型在捕捉小脸上的上下文推理能力，SSH和PyramidBox在特征图金字塔上使用了上下文模块在欧几里得网格（Euclidean grids）上增大感受野。为了增强CNN对柔性变换（non-rigid transformation）的建模能力，形变卷积网络（deformable convolution network，DCN）使用一个形变层来对几何变换进行建模。WIDER Face 2018的冠军方法指出刚性（expansion，扩张）和柔性（deformation，形变）的上下文建模对提升人脸检测效果是互补（complementary）和正交（orthogonal）的。
+* **Context Modelling**：为了增强模型在捕捉小脸上的上下文推理能力，SSH和PyramidBox在特征图金字塔上使用了上下文模块在欧几里得网格（Euclidean grids）上增大感受野。为了增强CNN对柔性变换（non-rigid transformation）的建模能力，可变形卷积网络（deformable convolution network，DCN）使用一个形变层来对几何变换进行建模。WIDER Face 2018的冠军方法指出刚性（expansion，扩张）和柔性（deformation，形变）的上下文建模对提升人脸检测效果是互补（complementary）和正交（orthogonal）的。
 * **Multi-task Learning**：由于对齐的人脸形状能够为人脸分类提供更高质量的特征，人脸检测和对齐的联合算法应用广泛。在Mask R-CNN中，增加与已有分支平行的mask预测分支显著地提升了检测效果。
 
-![avatar](/2.png"Figure 2")
+![figure2](2.png"Figure 2")
 
 ## RetinaFace
 
@@ -64,7 +64,7 @@ $$
 
 * **Mesh Decoder.** 直接使用现成的mesh decoder（mesh convolution和mesh up-sampling），是一个基于快速局部谱滤波的图卷积方法。为了进一步加速，还使用了一个形状纹理联合decoder
 
-  <img src="/3.png" alt="avatar" title="Figure 3" style="zoom:80%;" />
+  <img src="3.png" alt="figure3" title="Figure 3" style="zoom: 67%;" />
 
   下面简要介绍一下图卷积的概念并指出为什么可以用作快速解码。如Figure 3(a)所示，一个2D的卷积操作是在欧几里得网格感受野上的“带权重的核相邻求和”操作。图卷积的概念与之类似，如Figure 3(b)所示。但是图上的相邻距离为两个顶点间的最少边数量。定义一个有颜色的面部网格（coloured face mesh）为$\mathcal{G=(V,E)}$，其中$\mathcal{V}\in \mathbb{R}^{n\times6}$，是包含结点形状和纹理信息的一组面部顶点的集合。$\mathcal{E}\in \{0,1\}^{n\times n}$是一个稀疏的临近矩阵，它编码了图中各顶点的连接状态。图拉普拉斯矩阵定义为$L=D-\mathcal{E}\in\mathbb{R}^{n\times n}$，其中$D\in\mathbb{R}^{n\times n}$是一个对角阵，有$D_{ii}=\sum_j\mathcal{E_{ij}}$
 
@@ -99,9 +99,9 @@ WIDER FACE数据集由32203张图片组成，共包含393703个人脸边界框�
 
 * **Extra Annotations.** 如Figure 4和Table 1所示，定义5个图像质量的等级（根据做标记的难度）并在WIDER FACE训练集和验证集中，标记出的人脸上标记5个关键点（眼中心，鼻头和嘴角）。训练集一共有84.6k人脸，验证集有18.5k个人脸。
 
-  <img src="4.png" alt="avatar" title="Figure 4" style="zoom:80%;" />
+  <img src="4.png" alt="figure4" title="Figure 4" style="zoom: 67%;" />
 
-<img src="t1.png" alt="avatar" title="Table 1" style="zoom:80%;" />
+<img src="t1.png" alt="table1" title="Table 1" style="zoom: 67%;" />
 
 
 
@@ -115,7 +115,7 @@ WIDER FACE数据集由32203张图片组成，共包含393703个人脸边界框�
 
 * **Anchor Settings.** 如Table 2 中所示，在$P_2\sim P_6$的特征图上用确定尺寸的anchors。$P_2$通过将小anchors平铺的方式来捕捉小尺寸人脸，这种方式计算量更大，假正类更多。将scale step设置为$2^{1/3}$，长宽比为1：1.当输入尺寸为$640\times 640$的时候，anchors在特征图金字塔上可以覆盖从$16\times 16$到$406\times 406$的尺度范围。总共有102300个anchors，而且其中75%都来自于$P_2$.
 
-  ![avatar](/t2.png"Table 2")
+  <img src="t2.png" alt="table2" title="Table 2" style="zoom:80%;" />
 
   训练过程中，如果一个anchor和一个gt box的IoU大于0.5，就将二者相匹配，小于0.3就将anchor和background相匹配。未匹配的anchors在训练过程会被忽略掉。由于绝大部分（>99%）anchors在匹配完是负类，使用标注OHEM（Online Hard Example Mining）来缓解正样本和负样本之间严重的不平衡问题。具体来说，根据负anchors的loss值排序后取靠前的部分，保证负样本和正样本的比例为3：1
 
