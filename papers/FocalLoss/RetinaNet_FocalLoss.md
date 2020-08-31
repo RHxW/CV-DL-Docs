@@ -113,7 +113,7 @@ backbone网络负责根据输入的图像计算卷积特征图，是一个off-th
 
   与RPN相比，本分类子网络更深，只使用$3\times3$卷积层，且不与box回归子网络共享参数。我们发现这些更顶层的设计要比具体的超参数值更重要。
 
-* **Box Regression Subnet：** 再金字塔每层后接一个与分类子网络平行的小FCN来对每个anchor box根据其临近的gt object（如果存在）进行偏移量回归。除了最后输出$4A$通道外，其结构与分类子网络一样，见Figure 3(d)。对每个位置上的$A$个anchors，这4个输出预测anchor和gt box之间的相关偏移量
+* **Box Regression Subnet：** 在金字塔每层后接一个与分类子网络平行的小FCN来对每个anchor box根据其临近的gt object（如果存在）进行偏移量回归。除了最后输出$4A$通道外，其结构与分类子网络一样，见Figure 3(d)。对每个位置上的$A$个anchors，这4个输出预测anchor和gt box之间的相关偏移量
 
 
 
