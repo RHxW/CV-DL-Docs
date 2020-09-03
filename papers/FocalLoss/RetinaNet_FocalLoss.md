@@ -118,3 +118,9 @@ backbone网络负责根据输入的图像计算卷积特征图，是一个off-th
 
 
 ![avatar](4.png"Figure 4")
+
+
+
+*****
+
+提出FocalLoss解决类间不平衡问题，并提出了一个一阶段检测网络RetinaNet
