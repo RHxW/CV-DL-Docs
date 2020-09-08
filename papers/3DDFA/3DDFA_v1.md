@@ -26,3 +26,55 @@
 
 ### Model Fitting
 
+大多数匹配（fitting）方法可以分成两大类：基于匹配模板和基于回归。匹配模板方法使用一个面部模型来匹配图像。例如Active Appearance Model(AAM)和Analysis-by-Synthesis 3DMM Fitting通过最小化模型外观和输入图像间差异来模拟面部图像的生成过程并完成对齐。Active Shape Model(ASM)和Constrained Local Model(CLM)为每个关键点建立一个模板并使用PCA形状模型来限制匹配结果。TSPM和CDM使用part based model和DPM-like方法对齐人脸。一般来说，模板匹配法的效果取决于图像的模式是否在面部外观模型的多种表示之中。因此，在非限制环境下由于外观变化范围太大且复杂程度太高，导致这种方法的鲁棒性有限。
+
+基于回归的方法通过回归图像特征来估计模型参数。最近提出的级联回归在领域内很受欢迎，可以总结为：
+$$
+\mathrm{\textbf{p}}^{k+1}=\mathrm{\textbf{p}}^k+Reg^k(Fea(\mathrm{\textbf{I}},\mathrm{\textbf{p}}^k)). \quad\quad\quad(1)
+$$
+其中形状参数$\mathrm{\textbf{p}}^k$和第$k$次循环由在外形索引特征(shape indexed feature)$Fea$上执行的回归$Reg^k$来更新，$Fea$由图像$\textbf{I}$和当前参数$\mathrm{\textbf{p}}^k$来决定。回归$Reg^k$展现了一个重要的“反馈”特性，其输入特征$Fea(\textbf{I},\mathrm{\textbf{p}})$可由其输出来更新，因为每个循环结束后都会更新$\mathrm{\textbf{p}}$.有了这一特性，一系列弱回归器可以通过级联的方式逐步减小对齐误差。
+
+### Large Pose Face Alignment
+
+尽管人脸对齐领域已经有了很多伟大成就，但是绝大多数SOTA方法在大姿态场景下适应能力不够强，因为要在关键点位移和对应图像特征间建立连接，而图像又有可能是自遮挡的。在2D方法中，一个通用解决方案是多视角框架，对不同视角使用不同关键点设置。在AAM，DAM，和DPM都用到这种方案，将人脸与不同模型进行匹配，哪个可能性最大就选作最终结果。但是由于要对每个视角进行测试，计算量很高。另一个方法是明确估计出关键点的可见性，将被遮挡的特征的贡献减小。尽管如此，遮挡估计本身仍是一个充满挑战的任务，处理多维度特征也仍然是一个不适定问题。
+
+与2D方法不同，3D人脸对齐的目标是将一个3DMM与2D图像相匹配。通过与3D信息相结合，3DMM可以内在地提供每一个模型店的可见性而无需任何额外估计，使处理自遮挡点成为可能。原始3DMM匹配方法通过最小化3D模型与图像间的像素级差异将二者相匹配，并对面部模型进行渲染。由于只匹配可见顶点，这是第一个可以覆盖任意姿态的方法，但是它的计算量很大。最近，基于回归的3DMM匹配可以用来提升效率，它通过在3D投影的关键点上对特征进行回归来估计参数。不过这些方法面临两个主要挑战。第一个，投影后的3D关键点可能被自遮挡，从而丢失它们的图像模式，使特征不再具有姿态不变性。第二个，3DMM的参数再匹配的时候有不同的优先级，尽管现有的基于回归的方法无差别地对待它们。结果就是，直接最小化参数损失也许是次优的，因为更小的参数误差并不一定与更小的对齐误差相等。
+
+
+
+## 3D Dense Face Alignment(3DDFA)
+
+用一个CNN作为公式(1)中的回归器，级联CNN可以表示为：
+$$
+\mathrm{\textbf{p}}^{k+1}=\mathrm{\textbf{p}}^k+Net^k(Fea(\mathrm{\textbf{I}},\mathrm{\textbf{p}}^k)). \quad\quad\quad(2)
+$$
+这个框架中一共有四部分，分别是：回归器对象$\mathrm{\textbf{p}}$，图像特征$Fea$，CNN结构$Net$和训练用的代价函数。
+
+### 3D Morphable Model
+
+Blanz et al. 提出3D Morphable Model(3DMM)，使用PCA描述3D人脸空间：
+$$
+\mathrm{\textbf{S}}=\bar{\mathrm{\textbf{S}}}+\mathrm{\textbf{A}}_{id}\alpha_{id}+\mathrm{\textbf{A}}_{exp}\alpha_{exp}, \quad\quad\quad(3)
+$$
+其中$\mathrm{\textbf{S}}$是一个3D人脸，$\bar{\mathrm{\textbf{S}}}$是平均形状，$\mathrm{\textbf{A}}_{id}$是在3D扫描人脸上用中性表情训练的主轴，$\alpha_{id}$是形状参数，$\mathrm{\textbf{A}}_{exp}$是用表情扫描和中性扫描的偏差训练的主轴，$\alpha_{exp}$是表情参数。本作中$\mathrm{\textbf{A}}_{id}$和$\mathrm{\textbf{A}}_{exp}$分别来自BFM和FaceWarehouse.3D人脸构建完成后，就可以用缩放正交投影（scale orthographic projection）将其投影到图像平面上：
+$$
+V(\mathrm{\textbf{p}})=f*\mathrm{\textbf{Pr}}*\mathrm{\textbf{R}}*(\bar{\mathrm{\textbf{S}}}+\mathrm{\textbf{A}}_{id}\alpha_{id}+\mathrm{\textbf{A}}_{exp}\alpha_{exp})+\mathrm{\textbf{t}}_{2d}, \quad\quad\quad(4)
+$$
+其中$V(\mathrm{\textbf{p}})$是模型构建和投影函数，生成模型顶点的2D位置，$f$是缩放因子，$\mathrm{\textbf{Pr}}$是正交投影矩阵
+$$
+(
+\begin{matrix} 
+1 & 0 & 0 \\ 
+0 & 1 & 0
+\end{matrix}
+)
+$$
+$\mathrm{\textbf{R}}$是旋转矩阵，$\mathrm{\textbf{t}}_{2d}$是平移向量。全部模型参数的集合为$\mathrm{\textbf{p}}=[f,\mathrm{\textbf{R}},\mathrm{\textbf{t}}_{2d}, \alpha_{id}, \alpha_{exp}]^{\mathrm{T}}$.
+
+
+
+TODO
+
+TODO
+
+TODO
