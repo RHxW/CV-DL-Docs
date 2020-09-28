@@ -86,4 +86,14 @@ $$
 
 ### 3.4. Improved Anchor Matching
 
-当前的anchor匹配方法在anchor和gt face间是双向的。因此，anchor的设计和face采样
+当前的anchor匹配方法在anchor和gt face间是双向的。因此，anchor的设计和增广的face采样都与尽可能匹配anchors和人脸从而更好的初始化回归器相关。我们的IAM目标是解决离散的anchor尺度和连续的人脸尺度之间的矛盾，其中人脸通过$S_{input}*S_{face}/S_{anchor}$进行概率为40%的增广，目的是为了增加正anchors的数量，稳定训练过程并由此提高结果。Table 1展示了我们的anchor设计，每个特征图上的点（cell）是如何与固定形状anchor相关联的。基于face尺寸统计信息，将anchor比率设置为1.5:1.原始特征图上的anchor尺寸是增强后特征图上尺寸的一半。另外，有2/5的概率，我们使用基于anchor的采样方法（类似于PyramidBox中的data-anchor-sampling），从图像中随机选择一个人脸，对包含人脸的子图进行剪裁，设置子图和选中的人脸间的尺寸比为640/rand（16，32，64，128，256，512）.剩下的3/5概率，使用与SSD类似的数据增广方法。为了提升人脸的召回率并同时保证anchor的分类能力，将anchor与gt face之间的IoU阈值设置为0.4。
+
+
+
+## Experiments
+
+### 4.1. Implementation Details
+
+backbone网络使用在ImageNet预训练的VGG/ResNet.所有新加入的卷积层参数都用'xavier'方法初始化。用动量为0.9，weight decay为0.0005的SGD来微调DSFD模型。batch size设为16.学习率前40k步为$10^{-3}$，两个10k步分别降到$10^{-4}$和$10^{-5}$.
+
+推理阶段，忽略掉第一个shot的输出，第二个shot预测前5k个高置信度检测结果。使用交并比为0.3的非极大值抑制每张图片产生前750个高置信度bounding box.bounding box 的四个坐标，左上点向下取整，右下点向上取整来扩大检测框。
