@@ -79,3 +79,11 @@ $$
 $$
 \mathcal{L}_{FSL}(p_i,p_i^*,t_i,g_i,sa_i)=\frac{1}{N_{conf}}\Sigma_iL_{conf}(p_i,p_i^*)+\frac{\beta}{N_{loc}}\Sigma_ip_i^*L_{loc}(t_i,g_i,sa_i), \quad\quad\quad(3)
 $$
+其中$sa$代表第一个shot层中较小的anchors，两个shots的losses可以通过加权求和的方式表示成一个完整的Progressive Anchor Loss：
+$$
+\mathcal{L}_{PAL}=\mathcal{L}_{FSL}(sa)+\lambda\mathcal{L}_{SSL}(a). \quad\quad\quad(4)
+$$
+
+### 3.4. Improved Anchor Matching
+
+当前的anchor匹配方法在anchor和gt face间是双向的。因此，anchor的设计和face采样
