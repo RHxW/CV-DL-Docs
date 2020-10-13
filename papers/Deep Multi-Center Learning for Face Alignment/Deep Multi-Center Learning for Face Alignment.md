@@ -80,9 +80,9 @@ $$
 
 1) *Pre-Training and Weighting Fine-Tuning:* 在Step 1中，训练一个带一个形状预测层的基础模型（BM）学习一个较好的初始模型。公式4中所有$j$的$u_j=1$.BM模型在训练集$\Omega^v$上的每个关键点的平均对齐误差分别为$\epsilon^b_1,...,\epsilon^b_n$,在全部图片上取平均。误差更大的关键点视为困难关键点。
 
-在第二步和第三步中，通过增大困难关键点的权重来关注困难关键点的检测。第$j$个关键点的权重与其对齐误差成比例：
+在第二步和第三步中，通过给困难关键点分配较大的权重来关注困难关键点的检测。第$j$个关键点的权重与其对齐误差成比例：
 $$
-u_j=n\epsilon^b_j \sum\limits_{j=1}^n\epsilon^b_j. \quad\quad\quad(5)
+u_j=n\epsilon^b_j/ \sum\limits_{j=1}^n\epsilon^b_j. \quad\quad\quad(5)
 $$
 使用两步来平滑地搜索解而非直接微调BM的全部层。步骤二寻找没有过度偏离BM的解。步骤三在前一步的较大范围的基础上进行搜索。这一阶段称为权重微调，学到一个权重模型（WM），其对于困难关键点的定位准确度更高。
 
@@ -98,4 +98,35 @@ $$
 $$
 u_{P^i}|P^i|+u_{Q^i}(n-|P^i|)=n, \quad\quad\quad(7)
 $$
-其中$|\cdot|$代表一个集群中元素的数量。
+其中$|\cdot|$代表一个集群中元素的数量。通过公式6和7可以得到权重表达式：
+$$
+u_{P^i}=\alpha n/[(\alpha-1)|P^i|+n], \\
+u_{Q^i}=n/[(\alpha-1)|P^i|+n]. \quad\quad\quad(8)
+$$
+WM在训练集$\Omega^v$上每个关键点的平均对齐误差分别是$\epsilon^w_1,...,\epsilon^w_n$.与公式5相似，第$j$个关键点的权重是：
+$$
+u_j=
+\begin{cases}
+u_{P^i}|P^i|\cdot \epsilon^w_j/\sum_{j\in P^i}\epsilon^w_j, \quad\quad\quad j\in P^i, \quad\quad\quad(9)\\
+u_{Q^i}(n-|p^i|)\cdot \epsilon^w_j/\sum_{j\in Q^i}\epsilon^w_j, \quad j\in Q^i. 
+\end{cases}
+$$
+尽管主要优化的对象是$P^i$中的关键点，但是仍然需要考虑其他关键点，给一个非零的小权重。这样做有利于利用不同面部区域在结构上的隐式的关系，且有利于稳定求解。这一阶段称为multi-center fine-tuning，学习多个形状预测层。
+
+第七步，将多个形状预测层根据公式2组装到一起。在这个模型组装阶段，学习一个组装模型（AM）。在组装过程中不会增加模型的复杂度，所以AM的计算量较小。它通过整合每个形状预测层的优势提高了每个关键点的检测精确度。
+
+3) *Analysis of Model Learning:* 为了调查关键点权重在学习过程中的影响，我们计算了公式4中关于$\hat{y}_k$的导数：
+$$
+\frac{\partial E}{\partial \hat{y}_k}=u_j(\hat{y}_k-y_k)/d^2, \quad\quad\quad(10)
+$$
+其中$k\in{2j-1,2j},j=1,...,n$.在学习过程中，公式3中经过组装的权重矩阵$\textbf{W}^a$通过SGD更新参数。特别地，$\textbf{w}^a_k=\textbf{w}^a_k-\eta \frac{\partial E}{\partial \textbf{w}^a_k}=\textbf{w}^a_k-\eta\frac{\partial E}{\partial \hat{y}_k}\frac{\partial \hat{y}_k}{\partial \textbf{w}^a_k}=\textbf{w}^a_k-\eta\frac{\partial E}{\partial \hat{y}_k}\textbf{x}$.总之，$\textbf{W}^a$更新为（$\textbf{x}$是提取的特征）：
+$$
+\textbf{w}^a=\textbf{w}^a-\eta u_j(\hat y_k-y_k)\textbf{x}/d^2, \quad\quad\quad(11)
+$$
+其中$\eta$是学习率。如果第$j$个关键点的权重较大，其对应的参数更新的步长就较大。因此对每个关键点的loss进行加权来保证主要优化权重较大的关键点。我们的方法首先使用加权微调阶段来优化困难关键点，然后使用multi-center 微调阶段来分别优化每个关键点集群。
+
+
+
+*****
+
+因为人脸关键点间有隐含的结构关系，所以将人脸分成几个区域（七个），每个区域内的关键点构成一个集群。针对每个集群进行关键点回归，使用多个FC层，每个FC层对应一个区域，然后再将它们组装成一个FC层
