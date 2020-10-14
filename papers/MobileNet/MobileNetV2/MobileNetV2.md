@@ -75,4 +75,33 @@ Figure 3简略地展示了设计上的差异。加入shortcuts的动机与经典
 
 ![Table 1](t1.png"Table 1")
 
-一个尺寸为$h\times w$的块，扩张因子$t$和kernel size $k$，输入通道数为$d'$，输出通道数为$d''$，其乘加计算量为$h\cdot w\cdot d'\cdot t(d'+k^2+d'')$.
+一个尺寸为$h\times w$的块，扩张因子$t$和kernel size $k$，输入通道数为$d'$，输出通道数为$d''$，其乘加计算量为$h\cdot w\cdot d'\cdot t(d'+k^2+d'')$.与公式(1)相比，这个表达式多了一项，因为实际上我们用了额外的$1\times1$卷积，但是我们的网络的特性允许我们利用更小的输入和输出维度。Table 3中比较了MobileNetV1，MobileNetV2和ShuffleNet对不同分辨率所需的尺寸。
+
+![Table 2](t2.png"Table 2")
+
+![Table 3](t3.png"Table 3")
+
+
+
+### 3.4. Information flow interpretation
+
+这种架构的一个有趣的特性是它在building blocks和layer transformation（是一个非线性函数，将输入转换成输出）的输入域和输出域之间提供了一个自然的隔离。前者可视为网络每一层的容量，后者可视为表达能力。与传统卷积块相比，无论一般的还是可分离的，它们的表达能力和容量纠缠到一起且是输出层深度的函数。
+
+实际上，我们的方案中，当内部层深度为0则代表其基础卷积是identity函数。当扩张率小于1，就是一个经典的残差卷积块。
+
+这一解释使我们能独立于网络容量去研究网络的表达能力，我们相信有关这种分离的进一步的探索可以保证对网络性质的更好理解。
+
+
+
+## 4. Model Architecture
+
+前面说到基础的building block是一个带残差的bottleneck深度可分离卷积，其结构细节可见Table 1.MobileNetV2的架构包括初始含32个滤波核的全卷积层，接着是19个残差bottleneck层，见Table 2.使用ReLU6作为非线性函数，因为其在低精度计算中的鲁棒性。总是使用$3\times3$的卷积核，因为是现代网络的标配，还在训练过程中使用dropout和batchnorm.
+
+除了第一层之外，在整个网络中使用常数扩张率。实验中发现扩张率在5到10之间时的性能曲线结果差不多，小网络最好使用稍微小一点的扩张率，大网络使用稍大的扩张率效果会更好。
+
+我们的所有主要实验中使用的扩张因子都为6.例如对于一个接收64通道张量作为输入，且输出128个通道的bottleneck layer，其内部扩张层就是$64\cdot6=384$个通道。
+
+
+
+**Trade-off hyper parameters**
+
