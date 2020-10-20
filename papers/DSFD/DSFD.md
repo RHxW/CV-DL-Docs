@@ -94,6 +94,6 @@ $$
 
 ### 4.1. Implementation Details
 
-backbone网络使用在ImageNet预训练的VGG/ResNet.所有新加入的卷积层参数都用'xavier'方法初始化。用动量为0.9，weight decay为0.0005的SGD来微调DSFD模型。batch size设为16.学习率前40k步为$10^{-3}$，两个10k步分别降到$10^{-4}$和$10^{-5}$.
+backbone网络使用在ImageNet预训练的VGG/ResNet.所有新加入的卷积层参数都用`xavier`方法初始化。用动量为0.9，weight decay为0.0005的SGD来微调DSFD模型。batch size设为16.学习率前40k步为$10^{-3}$，两个10k步分别降到$10^{-4}$和$10^{-5}$.
 
 推理阶段，忽略掉第一个shot的输出，第二个shot预测前5k个高置信度检测结果。使用交并比为0.3的非极大值抑制每张图片产生前750个高置信度bounding box.bounding box 的四个坐标，左上点向下取整，右下点向上取整来扩大检测框。
