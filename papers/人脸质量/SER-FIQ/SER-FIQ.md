@@ -76,3 +76,64 @@ SER-FIQ的目标是从识别任务的视角来估计人脸图片的质量，也�
 
 **Evaluation metrics**
 
+使用error versus reject曲线来衡量人脸质量评估的表现。这些曲线展示了一个在少量unconsidered人脸图片上的验证错误率。unconsidered图像是那些预测的质量评分最低的图片，错误率用剩下的图片计算。error versus reject曲线能指出当提高unconsidered图像比例时验证错误持续减少时好的质量估计。与error versus quality-threshold曲线相反，这个过程允许公平地比较多个人脸质量评估算法，因为其与质量预测的范围无关。
+
+error versus reject曲线中的人脸验证错误率使用FNMR（false non-match rate）和FMR（fixed false match rate）并作为EER（equal error rate）。EER等于阈值的FMR，FMR=1-FNMR，FMR是用于验证效果的单值指示器。
+
+**Face recognition network**
+
+要从一张人脸图像中获得人脸embedding特征，这张图像需要经过对齐、缩放和剪裁。经过预处理的图像传入一个人脸识别模型。本作中使用两个人脸识别模型，FaceNet和ArcFace.两个模型都用MS1M数据集进行训练。id验证通过比较两个embedding特征的余弦相似度来实现。
+
+**On-top model preparation**
+
+要应用我们的质量评估方法，需要一个使用dropout训练的识别模型。不然需要在现有模型上（前，top）添加一个带dropout的模型。使用我们的方法最直接的办法是用一个预训练的识别模型，在预测时只用最后几层重复进行随机前向传播。这样做甚至比训练一个定制的网络效果要好，因为验证决策，也就是质量评估决策，是在一个共享的embedding空间中完成的。
+
+为了展示我们的方法可以应用于任意确定的人脸识别系统，在我们的实验中展示了两种实现方式：(a) 训练一个小的定制网络加在人脸识别系统上，称为***SER-FIQ(on-top model)***，(b) 使用部署的模型做质量评估，称为***SER-FIQ(same model)***.
+
+***SER-FIQ(on-top model)***的结构经过优化，使其输出的embedding特征在ColorFeret上与FaceNet的embedding特征的EER相似。它由5层组成，分别有$n_{emb}/128/512/n_{emb}/n_{ids}$个维度。两个内部层有128和512个维度。最后一层的维度与训练时的id数$n_{ids}$相等，且旨在训练时使用。所有层都有dropout，推荐概率为$p_d=0.5$，且使用tanh作为激活。这个小网络使用AdaDelta优化器训练，batchsize为1024，训练100个epochs. 由于网络输入和输出层的尺寸根据使用的人脸embedding特征不同而不同，所以为FaceNet选用学习率$\alpha_{FN}=10^{-1}$,为embedding特征维度更高的Arcface选用学习率$\alpha_{AF}=10^{-4}$. loss函数选用BCE用作分类loss.
+
+**Investigations**
+
+为了调查人脸质量评估的泛化能力，我们在交叉数据集上做了实验。在ColorFeret上进行训练，让模型在受控场景下学习分布。在两个非限制场景的数据集上，Adience和LFW，进行测试。实验所用的embedding特征来自于FaceNet和ArcFace模型。
+
+为了使实验结果更好理解，我们与六种baseline方法进行比较。其中三种是CV领域广为人知的无参考图像质量度量方法：Brisque，Niqe和Piqe. 另外三种是学术界和工业界的sota人脸质量评估方法。
+
+我们提出的方法有两种设置，***SER-FIQ(on-top model)***和***SER-FIQ(same model)***. ***SER-FIQ(same model)***说明我们的无监督方法可用于任何人脸识别系统。***SER-FIQ(same model)***使用部署的人脸识别模型进行质量评估。后一种情况我们只在最后两层使用随机前向传播。
+
+**Database face quality rating**
+
+为了验证数据集的选择，Figure 3展示了使用四种预训练的人脸质量评估模型预测得到的人脸质量分布。
+
+![Figure 3](3.png"Figure 3")
+
+ColorFeret是在高度限制场景下拍摄的图片，其质量都很高。但是其中包含一些非正脸头部姿态，对于COTS和SER-FIQ(on FaceNet)来说是低质量图片。因为这些受限的变量，我们选择ColorFeret作为训练集。Adience和LFW是非限制场景数据集，对于人脸质量衡量而言，其中大多数人脸图像的质量都远称不上完美，所以将其作为测试集。
+
+
+
+![Figure 4](4.png"Figure 4")
+
+## 5. Results
+
+在三个工况点对实验进行验证以考察人脸质量评估在更宽范围潜在应用上的表现。采用欧盟边境管理局欧洲边境和海岸警卫机构（European Border and Coast Guard Agency Frontex）的最好的实践准则，在Figure 4中展示人脸质量评估在FMR为0.001下的表现。Figure 6展示了FMR为0.01下的表现，Figure 7展示了广泛使用的EER下的人脸质量评估表现。而且Figure 5展示了样本照片和各自对应的质量预测值。
+
+![Figure 5](5.png"Figure 5")
+
+**No-reference image quality approaches**
+
+为了了解不同衡量方式对于图片质量评估任务的重要性，我们衡量了三种无对照质量指标：Brisque，Niqe和Piqe.
+
+
+
+![Figure 6](6.png"Figure 6")
+
+![Figure 7](7.png"Figure 7")
+
+
+
+*****
+
+基于学习的无监督质量评估方法
+
+基于高质量人脸图像embedding特征向量鲁棒性更高的假设。
+
+用一个人脸识别模型多次随机前向传播（随机dropout）同一张人脸图片，计算多次特征向量的欧氏距离，越大说明人脸质量越差。
