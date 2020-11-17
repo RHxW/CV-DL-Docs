@@ -103,3 +103,37 @@ Figure 4(b)描述了动态时间混合网络。它接收两个拼接后的特征
 
 #### 5.1.3 Decoder
 
+如Figure 4(c)中所示，解码器的输入是前一阶段混合后的特征图$\tilde{\textbf{h}}_{n}$，输入到4个残差块中。输出是一个与输入的模糊帧$\textbf{B}_{n}$对应的潜在清晰帧(latent sharp frame)$\textbf{L}_{n}$和一个特征图$\textbf{F}_{n}$.使用最近邻上采样方法渲染预测的输出图像。需要注意的是，输出的特征图$\textbf{F}_{n}$作为下一个时间步骤的输入。
+
+
+
+### 5.2. Objective function
+
+使用均方差MSE作为潜在帧和其对应的gt清晰帧的目标函数：
+$$
+\textbf{E}_{mse}=\frac{1}{N_{mse}}\sum_n\|\textbf{S}_n-\textbf{L}_n\|^2, \quad\quad\quad(4)
+$$
+其中$N_{mse}$代表一个潜在帧的像素数量。另外使用权重衰减防止过拟合：
+$$
+\textbf{E}_{reg}=\|\textbf{W}\|^2, \quad\quad\quad(5)
+$$
+其中$\textbf{W}$代表可训练的网络参数。
+
+最终的目标函数$\textbf{E}$为：
+$$
+\textbf{E}=\textbf{E}_{mse}+\lambda\textbf{E}_{reg}, \quad\quad\quad(6)
+$$
+其中$\lambda$用于协调数据保真度和正则项。实验中设置$\lambda=10^{-5}$.
+
+
+
+### 5.3. Training parameters
+
+训练时从人工加模糊的视频中随机选取13个连续的模糊帧（如$\textbf{B}_1,...,\textbf{B}_{13}$），每一帧裁出一个patch.每个patch的尺寸是128*128像素，这13个patch的裁切位置是随机选取的。batchsize为8，使用Adam优化器，初始学习率为0.0001，按指数缩减，缩减率为0.96.
+
+
+
+## 6. Experiments
+
+### 6.1. Model comparison
+
