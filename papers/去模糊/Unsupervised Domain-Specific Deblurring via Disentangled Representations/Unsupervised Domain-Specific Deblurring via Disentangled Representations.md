@@ -67,4 +67,62 @@ $$
 \mathcal{L}_{D_S}=\mathbb{E}_{s\sim p(s)}[\log D_S(s)]+\mathbb{E}_{b\sim p(b)}[\log(1-D_S(G_S(E_B^c(b),z_b)))] \qquad (3)
 $$
 
+其中$D_S$试图最大化目标函数来区分去模糊的图片和真实清晰图片。，作为对比，$G_S$的目标是最小化loss使去模糊的图片与真实图片域$S$中的真实样本看起来更相似。模糊后图片域的对抗损失定义为：
+$$
+\mathcal{L}_{D_B}=\mathbb{E}_{b\sim p(b)}[\log D_B(b)]+\mathbb{E}_{s\sim p(s)}[log(1-D_B(G_B(E_S^c(s),z_b)))] \qquad (4)
+$$
+
+### 3.3. Cycle-Consistency Loss
+
+在最值游戏中与判别器$D_S$竞争过后，$G_S$应该能够生成视觉上真实的清晰图片。但是由于没有配对的监督存在，去模糊的图像也许无法保留原始模糊图像中的内容信息。受CycleGAN启发，引入循环一致性损失用于保证去模糊图片$s_b$能够被模糊重构成原始模糊样本，且$b_s$也可以转换回原始清晰图片域。循环一致性损失进一步限制了生成样本空间，并保留了原始图片的内容。具体来说，前向变换为：
+$$
+s_b=G_S(E_B^c(b), E^b(b)), b_s=G_B(E_S^c(s),E^b(b)) \qquad(5)
+$$
+反向变换为：
+$$
+\hat{b}=G_B(E_S^c(s_b),E^b(b_s)),\hat{s}=G_S(E_B^c(b_s),E^b(b_s)) \qquad(6)
+$$
+两个域上的循环一致性损失定义为：
+$$
+\mathcal{L}_{cc}=\mathbb{E}_{s\sim p(s)}[\Vert s-\hat{s}\Vert_1]+\mathbb{E}_{b\sim p(b)}[\Vert b-\hat{b}\Vert_1] \qquad (7)
+$$
+
+### 3.4. Perceptual Loss
+
+从之前的实验中发现，生成的去模糊样本通常包含很多讨厌的人工痕迹。受启发，一个预训练好的深度网络提取的特征包含大量语义信息，且可以把它们的距离当作感性相似度评价，因此在去模糊图片和对应的原始模糊图片间加入一个感性loss：
+$$
+\mathcal{L}_p=\Vert \phi_l(s_b)-\phi_l(b)\Vert_2^2 \qquad(8)
+$$
+其中$\phi_l(x)$是预训练的CNN第$l$层的特征。我们使用在ImageNet上预训练的VGG-19网络的3*3卷积层。
+
+使用模糊图片$b$而非清晰图片$s$作为感性loss的参考图片的主要原因有两个。第一，假设$b$的内容信息能被预训练的CNN提取。如Figure 4.2所示，实验结果验证了这一观点。第二，由于$s$和$b$是非配对的，如果在$s$和$s_b$之间使用感性loss会强制$s_b$编码$s$中不相关的内容信息。但是因为我们同样注意到感性loss对模糊敏感，所以小心地平衡感性loss和其他loss的权重以防止$s_b$和$b$太靠近。
+
+需要提到的是，并没有在$b_s$和$s$上使用感性loss. 这是因为在训练过程中我们并没有发现$b_s$中有明显的人工痕迹。而且，对于文字图像去模糊，因为观察到感性loss对性能表现不仅没有提升反而会降低，因此也没有引入。一个可能的原因也许是因为文字图像的像素密度分布和ImageNet中自然图像的像素密度分布的差异很大。
+
+完整的目标函数是所有loss的加权和：
+$$
+\mathcal{L}=\lambda_{adv}\mathcal{L}_{adv}+\lambda_{KL}\mathcal{L}_{KL}+\lambda_{cc}\mathcal{L}_{cc}+\lambda_{p}\mathcal{L}_{p} \qquad(9)
+$$
+其中$\mathcal{L}_{adv}=\mathcal{L}_{D_S}+\mathcal{L}_{D_B}$
+
+### 3.5. Testing
+
+测试的时候，去掉了模糊分支。给定一张测试的模糊图像$b_t$, $E_B^c$和$E^b$分别提取内容和模糊特征。然后$G_S$接收输出并生成去模糊后的图像$S_{b_t}$:
+$$
+s_{b_t}=G_S(E_B^c(b_t),E^b(b_t))
+$$
+
+### 3.6. Implementation Details
+
+**Architecture and training details.** 使用与`<Diverse image-to-image translation via disentangled representations>`相似的网络架构。内容编码器由3个卷积层和4个残差块构成。模糊编码器包含4个卷积层和一个全连接层。生成器的架构内容编码器是对称的，四个残差块后接三个转置卷积层。判别器使用一个多尺度结构，每个尺度的特征图经过5个卷积层和sigmoid输出。训练时使用Adam优化器，前40个epochs的学习率为0.0002，然后接下来40个epochs使用指数衰减。随机剪裁$128\times128$图像，batch size为16.
+
+$\lambda_{adv}=1,\lambda_{KL}=0.01,\lambda_{cc}=10,\lambda{p}=0.1$
+
+**Motion blur generation. **采用DeblurGAN的方式生成动态模糊核为图像加模糊，轨迹是随机生成的。然后通过对轨迹向量使用点插值法（ sub-pixel interpolation）生成核。
+
+
+
+## 4. Experimental Results
+
+### 4.1. Datasets and Metrics
 
