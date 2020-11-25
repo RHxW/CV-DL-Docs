@@ -1,6 +1,6 @@
 # SER-FIQ: Unsupervised Estimation of Face Image Quality Based on Stochastic Embedding Robustness
 
-基于随机嵌入鲁棒性的无监督人脸质量估计
+基于随机嵌入（特征）鲁棒性的无监督人脸质量估计
 
 提议使用一张图片表达的鲁棒性作为质量线索。
 
