@@ -38,3 +38,20 @@ blahblahblah
 $$
 \mathcal{L}_C=\frac{1}{2}\sum\limits_{i=1}^m \Vert x_i - c_{y_i} \Vert_2^2 \qquad(2)
 $$
+$c_{y_i} \in \mathbb{R}^d$ 代表深度特征的第$y_i$个类别中心。这个公式有效刻画了类内差异。理想情况下$c_{y_i}$会在特征变化时更新。也就是说，我们得将整个训练集考虑在内并在每次循环中都对每个类别的特征求平均，这么做的效率很低，甚至不可行。因此不能直接使用center loss. 也许这就是这样的center loss到目前为止都没用在CNN中的原因吧。
+
+为了解决这一问题，我们做了两个必要的改进。首先，在mini-batch的基础上更新center而非整个训练集。每个循环中通过计算对应类别特征的平均来得到center（本例中有些center也许不会被更新）. 其次，为了避免少量错误标注的样本引起的大扰动，使用一个标量$\alpha$来控制center的学习率。
+
+$\mathcal{L}_C$关于$x_i$的梯度和$c_{y_i}$的更新方程为：
+$$
+\frac{\partial \mathcal{L}_C}{\partial x_i}=x_i-c_{y_i} \qquad(3) \\
+\Delta c_j=\frac{\sum_{i=1}^m\delta(y_i=j)\cdot (c_j-x_i)}{1+\sum_{i=1}^m\delta(y_i=j)} \qquad(4)
+$$
+其中，当条件满足时$\delta(condition)=1$，否则为0。$\alpha$限制在$[0,1]$之间。使用softmax loss 和center loss联合监督训练CNN进行分辨性特征学习。公式为：
+$$
+\mathcal{L}=\mathcal{L}_S + \lambda\mathcal{L}_C \\
+=-\sum\limits_{i=1}^m \log{\frac{e^{W_{y_i}^Tx_i+b_{y_i}}}{\sum_{j=1}^ne^{W_{j}^Tx_i+b_{j}}}}+\frac{\lambda}{2}\sum\limits_{i=1}^m \Vert x_i-c_{y_i}\Vert_2^2 \qquad (5)
+$$
+显然，center loss监督的CNN可以训练并通过标准SGD进行优化。使用一个标量$\lambda$平衡两个损失函数。传统的softmax loss可被视为这个联合监督的特例，当$\lambda$为0时。在Algorithm 1中总结了联合监督下CNN的学习细节
+
+![Algorithm 1](a1.png"Algorithm 1")
