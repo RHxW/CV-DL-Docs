@@ -55,3 +55,13 @@ $$
 显然，center loss监督的CNN可以训练并通过标准SGD进行优化。使用一个标量$\lambda$平衡两个损失函数。传统的softmax loss可被视为这个联合监督的特例，当$\lambda$为0时。在Algorithm 1中总结了联合监督下CNN的学习细节
 
 ![Algorithm 1](a1.png"Algorithm 1")
+
+做实验验证了$\lambda$取值对分布的影响
+
+![Figure 3](3.png"Figure 3")
+
+
+
+### 3.3 Discussion
+
+**- The necessity of joint supervision. **如果只使用softmax loss作为监督，得到的特征会包含很大的类内差异。另一方面，如果只使用center loss监督CNN，学到的特征和中心会衰减至0（在这里，center loss会非常小）。
