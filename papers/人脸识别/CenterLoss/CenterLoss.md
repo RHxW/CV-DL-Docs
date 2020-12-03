@@ -64,4 +64,14 @@ $$
 
 ### 3.3 Discussion
 
-**- The necessity of joint supervision. **如果只使用softmax loss作为监督，得到的特征会包含很大的类内差异。另一方面，如果只使用center loss监督CNN，学到的特征和中心会衰减至0（在这里，center loss会非常小）。
+**- The necessity of joint supervision. **如果只使用softmax loss作为监督，得到的特征会包含很大的类内差异。另一方面，如果只使用center loss监督CNN，学到的特征和中心会衰减至0（在这里，center loss会非常小）。如果只用其中一个就无法获得分辨能力强的特征。所以将二者合并起来对CNN实行联合监督就很有必要，我们的实验也验证了这一点。
+
+**- Compared to contrastive loss and triplet loss. **blahblahblah
+
+
+
+## 4. Experiments
+
+### 4.1 Implementation Details
+
+**Preprocessing. **
