@@ -66,7 +66,7 @@ D_{C_i}^x=\{\cos(\langle \mathcal{F}_{C_i},\mathcal{F}_{C_i} \rangle), k=1,2,...
 $$
 ![Figure 2](2.png"Figure 2")
 
-
+> Fig. 2: **Committee and Mediator.** mediator的作用是聚合和传递committee的评价，用于选择数据对。
 
 
 
