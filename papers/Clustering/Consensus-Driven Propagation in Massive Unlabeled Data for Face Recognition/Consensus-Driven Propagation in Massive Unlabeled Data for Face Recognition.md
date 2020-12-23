@@ -103,17 +103,21 @@ $$
 
 **Committee Setup.** 为了创造一个高度异构的committee，使用了包括ResNet18, ResNet34, ResNet50, ResNet101, DenseNet121, VGG16, Inception V3, Inception-ResNet V2和NASNet-A的一个较小变体在内的CNN架构。实验中所使用的committee的成员数量为8，我们同样实验了0-8的数量。使用有标注数据训练所有这些网络，结果如Table 1所示。
 
+![Table 1](t1.png"Table 1")
+
 **Implementation Details.** mediator是一个有两个隐藏层的MLP分类器，每一个隐藏层包含50个节点，使用ReLU作为激活函数。测试时，将概率阈值设置为0.96，用于选择高置信度的样本对。
 
 ### 4.1 Comparisons and Results
 
-**Competing Methods.** 
+**Competing Methods.** 1）有监督深度特征提取器+层次聚类（Hierarchical clustering）：我们准备了使用有监督深度特征提取器的层次聚类的一个强大的基准。与其他聚类方法相比，层次聚类是处理大量数据时的很实用的方法。集群被分配了伪标签，并用于增广训练集。为了获得最佳性能，我们使用验证集且忽略只有一张图片的集群，仔细调整层次聚类的阈值。2）利用原始committee投票来选择样本对：如果全部committee成员都对某个样本对投票，则选择它。
 
+**Benchmarking.** 如Fig 4所示，CDP方法表现很好。从结果中可以看到：
 
+1）与没有无标签数据的下限相比（无标签：有标签的比例时0：1），CDP在不同数量未标注数据的情况下获得了巨大且稳定的提升。
 
+2）CDP大幅度超越了层次聚类基准，齐平甚至高于全监督方法。
 
-
-
+![Figure 4](4.png"Figure 4")
 
 
 
