@@ -46,3 +46,8 @@
 
 ### 3.3. Cluster Detection
 
+设计一个基于图卷积网络(GCN)的模块用于从生成的聚类族proposals中选择高质量聚类族。这里关于质量的衡量标准有两个，分别是IoU和IoP评分。给定一个聚类族proposal$\mathcal{P}$，这两个评分定义为：
+$$
+IoU(\mathcal{P})=\frac{|\mathcal{P}\cap \widehat{\mathcal{P}}|}{|\mathcal{P}\cup \widehat{\mathcal{P}}|}, \qquad IoP(\mathcal{P})=\frac{|\mathcal{P}\cap \widehat{\mathcal{P}}|}{\mathcal{P}}, \qquad(1)
+$$
+其中$\widehat{\mathcal{P}}$是
