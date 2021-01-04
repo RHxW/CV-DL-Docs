@@ -50,4 +50,14 @@
 $$
 IoU(\mathcal{P})=\frac{|\mathcal{P}\cap \widehat{\mathcal{P}}|}{|\mathcal{P}\cup \widehat{\mathcal{P}}|}, \qquad IoP(\mathcal{P})=\frac{|\mathcal{P}\cap \widehat{\mathcal{P}}|}{\mathcal{P}}, \qquad(1)
 $$
-其中$\widehat{\mathcal{P}}$是
+其中$\widehat{\mathcal{P}}$是所有顶点带标签$l(\mathcal{P})$的gt集合，$l(\mathcal{P})$是聚类族$\mathcal{P}$的多数标签，即$\mathcal{P}$中出现最多的标签。直观来看，IoU反映了$\mathcal{P}$和$\widehat{\mathcal{P}}$的接近程度；IoP反映纯度，即$\mathcal{P}$的顶点中标签占多数的比例。
+
+**Design of GCN-D.** 我们假设高质量聚类族通常表现出节点间特定的结构模式。引入一个GCN来识别这样的聚类族。特别地，给定一个聚类族proposal$\mathcal{P}_i$，GCN将可视化特征和其顶点（表示为$\textbf{F}_0(\mathcal{P}_i)$）和affinity子矩阵（表示为$\textbf{A}(\mathcal{P}_i)$）作为输入，同时预测IoU和IoP分数。
+
+GCN网络由L层组成，每一层的计算可以表示为：
+$$
+\textbf{F}_{l+1}(\mathcal{P}_i)=\sigma \Big(\tilde{\textbf{D}}(\mathcal{P}_i)^{-1}(\textbf{A}(\mathcal{P}_i)+\textbf{I})\textbf{F}_l(\mathcal{P}_i)\textbf{W}_l\Big), \qquad(2)
+$$
+其中$\tilde{\textbf{D}}=\sum_j\tilde{\textbf{A}_{ij}(\mathcal{P}_i)}$是一个对角度矩阵。$\textbf{F}_l(\mathcal{P}_i)$包含第l层的embeddings. $\textbf{W}_l$是一个用于转换embeddings的矩阵，$\sigma$是非线性激活函数。直观上，这个公式表述了一个接收每个顶点和其邻接点特征的加权平均作为输入，用$\textbf{W}_l$对它们进行变换，然后把它们传入一个非线性激活函数的过程。这个过程与CNN中的典型块类似，只不过是在拥有不确定拓扑结构的图上进行的操作。在高层embeddings $\textbf{F}_L(\mathcal{P}_i)$上使用一个覆盖$\mathcal{P}_i$内全部顶点的最大池化，得到一个提供总览信息的特征向量。然后使用两个全连接层分别预测IoU和IoP分数。
+
+**Training and Inference.**  给定一个带类别标签的训练集，可以根据公式(1)获取每个聚类族proposal$\mathcal{P}_i$的gt IoU和IoP分数。然后训练GCN-D模块，目标是最小化gt和预测分数间的MSE. 
