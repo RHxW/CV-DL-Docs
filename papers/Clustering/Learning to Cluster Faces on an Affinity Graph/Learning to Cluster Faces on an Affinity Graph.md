@@ -60,4 +60,18 @@ $$
 $$
 其中$\tilde{\textbf{D}}=\sum_j\tilde{\textbf{A}_{ij}(\mathcal{P}_i)}$是一个对角度矩阵。$\textbf{F}_l(\mathcal{P}_i)$包含第l层的embeddings. $\textbf{W}_l$是一个用于转换embeddings的矩阵，$\sigma$是非线性激活函数。直观上，这个公式表述了一个接收每个顶点和其邻接点特征的加权平均作为输入，用$\textbf{W}_l$对它们进行变换，然后把它们传入一个非线性激活函数的过程。这个过程与CNN中的典型块类似，只不过是在拥有不确定拓扑结构的图上进行的操作。在高层embeddings $\textbf{F}_L(\mathcal{P}_i)$上使用一个覆盖$\mathcal{P}_i$内全部顶点的最大池化，得到一个提供总览信息的特征向量。然后使用两个全连接层分别预测IoU和IoP分数。
 
-**Training and Inference.**  给定一个带类别标签的训练集，可以根据公式(1)获取每个聚类族proposal$\mathcal{P}_i$的gt IoU和IoP分数。然后训练GCN-D模块，目标是最小化gt和预测分数间的MSE. 
+**Training and Inference.**  给定一个带类别标签的训练集，可以根据公式(1)获取每个聚类族proposal$\mathcal{P}_i$的gt IoU和IoP分数。然后训练GCN-D模块，目标是最小化gt和预测分数间的MSE. 从实验中可以看到，在没有使用任何高级技术的前提下，GCN可以给出准确的预测。推理阶段，使用训练好的GCN-D来预测每个proposal的IoU和IoP分数。IoU分时会用在3.5节中来保留较高IoU的proposals. IoP分数会用在下一阶段来决定是否保留一个proposal.
+
+### 3.4. Cluster Segmentation
+
+GCN-D识别出的前几个proposals可能并不纯。这些proposals可能仍然包含一些离群点，需要消灭它们。所以开发了一个聚类分割模块，称为GCN-S，用于排除proposal包含的离群点。
+
+**Design of GCN-S.** GCN-S的结构与GCN-D相似。区别主要是预测的值。GCN-S对每个顶点输出一个概率值来预测它是一个真正的成员还是一个离群点。
+
+![Figure 3](3.png"Figure 3")
+
+**Indentifying Outliers.** 要训练GCN-S，需要准备gt. 一种自然的方式是将那些label值与多数label不同的顶点都当作离群点对待。但是，如Figure 3所示，当一个proposal中的不同label顶点数量差不多的时候，这个方法就会遇到问题。为了避免向人工定义的离群点过拟合，激励模型去学习不同的分割模式。只要分割的结果包含一个类别的顶点，无论其是否是多数标签，都将其视为合理的解。特别的，随机选择proposal中的一个顶点作为seed. 将一个值接在顶点的特征之后，当顶点为选中的seed时，值为1，否则为0. 拥有与seed相同label的顶点被视为正顶点，其他的则被视为离群点。多次使用这个方法，随机选择seed，就得到了每个proposal$\mathcal{P}$的多个训练样本。
+
+**Training and Inference.** 使用上述流程，可以从保留的proposals中准备一个训练样本集。每个样本包含一组特征向量，每一个特征向量对应一个顶点，和一个邻接矩阵，同样是一个二元向量，宝石顶点是否为正类。然后使用顶点的二元交叉熵作为损失函数来训练GCN-S模块。推理过程中，同样对一个生成的聚类族proposal提出对各假设，并只保存最多正顶点的预测结果（阈值为0.5）。这一策略避免了被选一个与少量正顶点相关联的顶点当作seed的情况误导。
+
+只将IoP介于0.3~0.7之间的proposals输入GCN-S中。因为当proposal很纯净时，离群点通常是困难样本，需要保留。当proposal很不纯净时，有可能其中任一类别都不占主要地位，因此这个proposal也许不适合GCN-S来处理。根据GCN-S的预测结果，将离群点从proposals中移除。
