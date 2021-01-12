@@ -34,6 +34,8 @@
 
 ![Figure 1](1.png"Figure 1")
 
+> 从图中可以看到，pairs信息只由base feature生成（实际上pairs信息和feature无关）。然后使用committee members的features + pairs信息生成用于Mediator的数据（relationship，affinity，structure和训练用的pairs_label）。先训练mediator，然后就可以用mediator判断每一个pair所连接的两个顶点是否为同一类，就替代了vote策略。
+
 ### 3.1 Consensus-Driven Propagation
 
 本节介绍CDP的细节步骤。
