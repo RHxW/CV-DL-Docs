@@ -31,13 +31,13 @@ $$
 $$
 g_{\theta}\star x=Ug_{\theta}U^Tx, \qquad(3)
 $$
-其中$U$是归一化后的图Laplacian矩阵$L=I_N-D^{- \frac{1}{2}}AD^{- \frac{1}{2}}=U\Lambda U^T$的特征向量矩阵，其对角的特征值矩阵为$\Lambda$，$U^Tx$是$x$的图傅里叶变换。我们可以将$g_{\theta}$理解为$L$的特征值的函数，如$g_{\theta}(\Lambda)$. 公式（3）计算起来很麻烦，因为特征向量矩阵$U$的乘法的复杂度是$\mathcal{O}(N^2)$. 而且首先计算$L$的特征分解对于大规模图来说就可能异常麻烦。为了避免这一问题，有研究指出（Hammond 2011）$g_{\theta}(\Lambda)$能够通过切比雪夫多项式$T_k(x)$到第$K$阶的部分展开（截断展开）来近似：
+其中$U$是归一化后的图Laplacian矩阵$L=I_N-D^{- \frac{1}{2}}AD^{- \frac{1}{2}}=U\Lambda U^T$的特征向量矩阵，其对角的特征值矩阵为$\Lambda$，$U^Tx$是$x$的图傅里叶变换。我们可以将$g_{\theta}$理解为$L$的特征值的函数，也就是$g_{\theta}(\Lambda)$. 公式（3）计算起来很麻烦，因为特征向量矩阵$U$的乘法的复杂度是$\mathcal{O}(N^2)$. 而且首先计算$L$的特征分解对于大规模图来说就可能异常麻烦。为了避免这一问题，有研究指出（Hammond 2011）$g_{\theta}(\Lambda)$能够通过切比雪夫多项式$T_k(x)$到第$K$阶的部分展开（截断展开）来近似：
 $$
 g_{\theta'}(\Lambda) \approx \sum\limits_{k=0}^K \theta_k'T_k(\tilde{\Lambda}), \qquad (4)
 $$
 用到了调整过的$\tilde{\Lambda}=\frac{2}{\lambda_{\max}} \Lambda-I_N$. $\lambda_{\max}$代表$L$的最大的特征值。$\theta'\in \mathbb{R}^K$是切比雪夫系数的向量。切比雪夫多项式的递归定义为$T_k(x)=2xT_{k-1}(x)-T_{k-2}(x)$，其中$T_0(x)=1, T_1(x)=x$. 
 
-回到我们对一个信号$x$于一个滤波器$g_{\theta'}$的卷积的定义，现在有：
+回到我们对一个信号$x$在滤波器$g_{\theta'}$下卷积的定义，现在有：
 $$
 g_{\theta'} \star x \approx \sum\limits_{k=0}^K\theta_k'T_k(\tilde{L})x, \qquad (5) \\
 \tilde{L}=\frac{2}{\lambda_{\max}} L-I_N

@@ -75,7 +75,7 @@ $$
 
 ### 5.1.1 Spectral Network
 
-卷积操作可以通过计算图的Laplacian矩阵的特征分解在傅里叶域中进行定义。这个操作可以定义为信号（每个节点的标量）$\textbf{x}\in \mathbb{R}^{N}$和一个参数为$\theta\in \mathbb{R}^{N}$的滤波器$\textbf{g}_{\theta}=\text{diag}(\theta)$的乘积：
+卷积操作可以通过计算图的Laplacian矩阵的特征分解在傅里叶域中进行定义。这个操作可以定义为信号（每个节点的标量）$\textbf{x}\in \mathbb{R}^{N}$和一个使用$\theta\in \mathbb{R}^{N}$进行参数化的滤波器$\textbf{g}_{\theta}=\text{diag}(\theta)$的乘积：
 $$
 \textbf{g}_{\theta}\star \textbf{x}=\textbf{Ug}_{\theta}(\Lambda)\textbf{U}^T\textbf{x}, \qquad (5.1)
 $$
