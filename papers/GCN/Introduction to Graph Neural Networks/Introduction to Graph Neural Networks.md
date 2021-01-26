@@ -241,3 +241,56 @@ $$
 $$
 其中$\textbf{W}^t$是第$t$层的参数。
 
+但是在公式（5.20）中，Hamilton et al.并没有利用邻居的整个集合，而是通过均匀采样使用了固定尺寸的邻居集合。聚合函数(`AGGREGATE`)有多种形式，Hamilton et al.给出三种建议的聚合器函数。
+
+* **平均聚合器(Mean aggregator)** 可视作来自于转换回的GCN框架(Kipf and Welling, 2017)的卷积操作的近似，所以可以近似为：
+  $$
+  \textbf{h}_v^t=\sigma(\textbf{W}\cdot \text{MEAN}(\{\textbf{h}_v^{t-1}\}\cup\{\textbf{h}_u^{t-1},\forall u \in N_v\})). \qquad(5.21)
+  $$
+  平均聚合器与其他聚合器不一样的原因是它并不对$\textbf{h}_v^{t-1}$和$\textbf{h}_{N_v}^{t}$进行拼接操作。它可以被视为一种形式的“跳跃连接”，且能够获得更好的效果。
+
+* **LSTM聚合器(LSTM aggregator)** Hamilton et al.同样使用了一个基于LSTM的聚合器，有更大的表达容量。但是LSTM是按照顺序处理输入的，所以它不具有置换不变性( permutation invariant)。Hamilton et al.在重排的节点邻居上上使用了LSTM.
+
+* **池化聚合器(Pooling aggregator)** 对于池化聚合器，其每个邻居的隐含状态都会传入一个全连接层，然后使用一个最大池化操作：
+  $$
+  \textbf{h}_{N_v}^t = \max(\{\sigma(\textbf{W}_{\text{pool}}\textbf{h}_u^{t-1}+b), \forall u \in N_v\}). \qquad(5.22)
+  $$
+  注意任何对称函数都可用在最大池化操作处。
+
+
+
+为了学习更好的表达，GraphSAGE进一步提出一个无监督loss函数，激励临近的节点拥有相似的表达，而疏远的节点有不同表达：
+$$
+J_G(\textbf{z}_u)=-\log(\sigma(\textbf{z}_u^T\textbf{z}_v))-Q\cdot E_{v_n\sim P_n(v)}\log (\sigma(-\textbf{z}_u^T\textbf{z}_{v_n})), \qquad(5.23)
+$$
+其中$v$是节点$u$的邻居，$P_n$是一个负采样分布。$Q$是负样本数量。
+
+
+
+# Chapter 6.  Graph Recurrent Networks
+
+还有一个趋势是使用RNNs中的门机制，如GRU或者LSTM，在传播步骤中降低普通GNN模型的限制并提升长期信息在图上传播的效率。本章讨论几个变体，称为图循环网络(GRNs, Graph Recurrent Networks)
+
+## 6.1 Gated Graph Neural Networks
+
+Li et al.提出了在传播中使用门循环单元(GRU, Gate Recurrent Units)的GGNN. 它将循环神经网络展开成了固定的$T$步并穿过时间反向传播来计算梯度（？？？）。
+
+特别地，这个传播模型的基础循环为：
+
+
+
+
+
+...
+
+...
+
+...
+
+
+
+
+
+# Chapter 6.  Graph Attention Networks
+
+注意力机制已经成功应用于许多基于序列的任务例如机器翻译、机器阅读等。与GCN同等对待所有邻居的机制相比，注意力机制能够为每一个邻居分配不同的注意力分数，从而定位更重要的邻居。本章讨论两个变体：GAT和GAAN
