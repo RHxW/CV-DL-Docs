@@ -69,7 +69,7 @@ $$
 
 **Dealing with Small Clusters. ** Loss重加权帮助阻止了巨型聚类的形成。然而我们仍然面对一些小聚类坍塌成空聚类的风险。为了解决这一问题，提出在这些特别小的聚类坍塌之前就预先处理并消灭它们的方法。用$\mathcal{C}_n$代表规模大于一个阈值的正常聚类，用$\mathcal{C}_s$代表规模没超过这个阈值的小聚类，对$c\in \mathcal{C}_s$，首先将$c$中的样本都分给$\mathcal{C}_n$中与其距离最近的中心，使$c$变成空聚类。然后将最大的聚类$c_{max}\in \mathcal{C}_n$使用K-Means分成两个子聚类，并随机选一个作为新的$c$. 重复这个过程知道所有的聚类都属于$\mathcal{C}_n$. 尽管这一过程粗暴地改变了一些聚类，但它仅影响少量的样本。
 
-**Dimensionality Reduction. ** 有些backbone网络将一张图片映射为一个高维向量，如AlexNet产生4096维的特征，ResNet-50获取2048维特征，这就导致后续的聚类需要高空间和时间复杂度。DC在整个数据集上使用PCA来降维。但是对于ODC，不同样本的特征的时间戳是不同的，导致样本间的统计信息不可比。因此PCA就不再适用了。每次迭代都使用PCA同样成本很高。因此加入一个非线性head层{fc-bn-reludropout-fc-relu}来将高维特征降低为256维。它在ODC迭代中一起训练。这个head层在下游任务(downstream tasks)中移除。
+**Dimensionality Reduction. ** 有些backbone网络将一张图片映射为一个高维向量，如AlexNet产生4096维的特征，ResNet-50获取2048维特征，这就导致后续的聚类需要高空间和时间复杂度。DC在整个数据集上使用PCA来降维。但是对于ODC，不同样本的特征的时间戳是不同的，导致样本间的统计信息不具可比性。因此PCA就不再适用了。每次迭代都使用PCA同样成本很高。因此加入一个非线性head层{fc-bn-relu-dropout-fc-relu}来将高维特征降低为256维。它在ODC迭代中一起训练。这个head层在下游任务(downstream tasks)中移除。
 
 
 
