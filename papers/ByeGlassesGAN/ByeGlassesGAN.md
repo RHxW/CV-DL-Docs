@@ -35,4 +35,48 @@ $$
 
 目标函数由四个loss函数组成，即对抗loss，像素loss，分割loss和id保持loss. 
 
-**Adversarial Loss** 为了使生成的图片尽可能的真实，采用对抗学习的策略。
+**Adversarial Loss** 为了使生成的图片尽可能的真实，采用对抗学习的策略。这里使用了LSGAN的目标函数，因为与标准对抗loss相比，它可以让GAN的训练过程更稳定。使用了两种GANloss：$L_{GAN}^{Global}$和$L_{GAN}^{Local}$来训练判别器。公式（3）展示了全局对抗损失：
+$$
+L_{D}^{Global}=\mathbb{E}_{y\sim P_y}[(D_{Global}(y)-1)^2]+\mathbb{E}_{x\sim P_x}[(D_{Global}(\hat{y}))^2] \qquad (3)
+$$
+计算$L_{D}^{Local}$的时候，将公式（3）中的$y,\hat{y},D_{Global}$替换为$y_{Local},\hat{y}_{Local},D_{Local}$. $y_{Local}=y\odot m_g,\hat{y}_{Local}=\hat{y}\odot m_g$. $\odot$代表点积操作，$m_g$是眼镜区域mask的gt. 训练生成器时使用的GAN loss如下：
+$$
+L_G^{Global}=\mathbb{E}_{x\sim P_x}[(D_{Global}(\hat{y})-1)^2] \qquad(4)
+$$
+计算$L_G^{Local}$的时候，同样将$\hat{y},D_{Global}$替换为$\hat{y}_{Local},D_{Local}$.
+
+**Per-pixel Loss** 计算生成图像$\hat{y}$和gt图像$y$间的$L_1$距离。像素loss强化了生成器的输入与gt的相似度。采用两种$L_1$loss，$L_{L_1}^{Global}$和$L_{L_1}^{Local}$. $L_{L_1}^{Local}$用于增强生成器在编辑区域的去除能力。全局L1loss定义为：
+$$
+L_{L_1}^{Global} = L1(\hat{y},y)=\mathbb{E}_{x\sim P_x}[\Vert y- \hat{y}\Vert_1] \qquad (5)
+$$
+计算$L_{L_1}^{Local}$的时候将$\hat{y},y$替换为$\hat{y}_{Local},y_{Local}$.
+
+**Segmentation Loss** 由于我们希望ByeGlassesGAN能够预测用于眼镜清除的分割mask，所以对生成眼镜区域和面部形状的分割mask采用了二元交叉熵损失。其形式为：
+$$
+L_{Seg}=\mathbb{E}_{x\sim P_x}-(m\cdot log(\hat{m})+(1-m)\cdot log(1-\hat{m})) \qquad (6)
+$$
+其中$\hat{m}$是生成的musk，$m$代表分割musk的gt.
+
+**Identity Perserving** 为了能够在去除眼镜后的图片中保留身份信息，使用了身份提取器(IE, Identity Extractor)，实际上是一个人脸分类器。
+
+在生成器引入身份距离loss，用于最小化$IE(y)$和$IE(\hat{y})$间的距离。与感知loss类似，在使用身份提取器提取$y$和$\hat{y}$的特征之后，计算两个特征向量间的MSE，形式为：
+$$
+L_{ID}=\mathbb{E}_{x\sim P_x,y\sim P_y}[\Vert IE(\hat{y})-IE(y)\Vert _2] \qquad (7)
+$$
+这个loss激励移除眼镜后的图片$\hat{y}$与gt图片$y$在身份提取器模型的特征空间内共享相同的身份信息。
+
+注意到IE是一个使用UMDFaces数据集预训练的ResNet34分类器。当训练身份分类器的手，将ResNet的layer4的输出变成512维特征向量，并使用ArcFace loss.
+
+最终，生成器的完整loss函数为：
+$$
+L_G=\lambda _1L_{G}^{Global}+\lambda_2L_G^{Local}+\lambda_3L_{L_1}^{Global}+\lambda_4L_{L_1}^{Local}+\lambda_5L_{Seg}+\lambda_6L_{ID} \qquad(8)
+$$
+
+### 3.3 Network Architecture
+
+这个基于GAN的眼镜去除框架包含一个生成器，两个判别器和一个身份提取器。生成器中有一个编码器(E)和两个解码器（面部解码器FD和分割解码器SD）。沿用ELEGANT的配置，编码器有5个卷积块构成，每个块包含一个卷积层接一个IN层和一个LeakyRelu激活函数。面部解码器FD和分割解码器SD都由5个反卷积块和一个输出块构成。每个反卷积块包含一个反卷积层接一个IN层和一个LeakyRelu激活函数。FD的输出块是一个反卷积层接一个Tanh激活函数，SD的输出块是一个反卷积层接一个Sigmoid激活函数。由于期望只修改原图中的眼镜区域，其他区域应该保持不变。使用U-NET架构作为ByeGlasses-GAN的生成器。在E-FD和E-SD的对应层间增加跳跃链接。与一般的编码解码器相比，U-NET可以大幅度降低信息的损失。另外，添加跳跃链接用于使FD利用SD获取的信息来重建图像。两个判别器所使用的网络架构是pix2pix中提出的PatchGAN.
+
+
+
+## 4 Synthesis of Face Images with Eyeglasses
+
