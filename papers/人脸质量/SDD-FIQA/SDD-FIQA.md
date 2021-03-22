@@ -46,3 +46,5 @@ Q_{x_i}=\mathbb{WD}(\mathcal{S}_{x_i}^P \Vert \mathcal{S}_{x_i}^N) \\
 = \inf_{\gamma\in \Pi(S_{x_i}^P,S_{x_i}^N)} \mathbb{E}_{(S_{x_i}^P,S_{x_i}^N)\sim\gamma}[\Vert s_{x_i}^P - s_{x_i}^N \Vert], \qquad (7)
 $$
 其中$\mathbb{WD}(\cdot)$代表Wasserstein距离，$\Pi(S_{x_i}^P,S_{x_i}^N)$代表所有边缘分布为$S_{x_i}^P$和$S_{x_i}^N$的联合分布$\gamma(s_{x_i}, s_{y_i})$的集合。
+
+。。。
