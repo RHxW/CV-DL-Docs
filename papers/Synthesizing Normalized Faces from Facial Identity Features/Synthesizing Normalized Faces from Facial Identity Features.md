@@ -32,5 +32,51 @@ blahblahblah
 
 ### 2.1. Inverting Deep Neural Network Features
 
+对于理解深度网络预测结果的兴趣引发了多种根据特定特征向量创建图像的方法。其中一个直接通过梯度下降来优化图像像素。由于与特征相关的像素空间过于庞大，优化过程需要较强的正则项，例如全变分或者高斯模糊。生成的图片很有意思但并不真实。
 
+另一种联系更紧密的方法通过训练一个前馈网络将给定embedding进行反转。Dosovitskiy and Brox将这个问题视为构建给定特征的最可能的图片。与它们相比，我们的方法采用更严格的惩罚使生成的图片必须是一张正则化人脸。
+
+
+
+### 2.2. Activate Appearance Model for Faces
+
+wraping operations
+
+blahblahblah
+
+
+
+### 2.3. FaceNet
+
+128维特征向量 
+
+blahblahblah
+
+
+
+### 2.4. Face Frontalization
+
+blahblahblah
+
+
+
+### 2.5. Face Generation using Neural Networks
+
+blahblahblah
+
+
+
+## 3. Autoencoder Model
+
+假设训练集是一组中性表情的正脸图片。前处理是将每张图片分解成纹理$T$和一组关键点$L$，使用的方法是现成的关键点检测工具和第四节中介绍的形变技术。
+
+测试的时候，考虑到图片来源于非限制场景，不适合使用训练时的前处理流程。则使用深度架构直接从图像映射到$L$和$T$的估计。整个网络架构如Figure 3所示。
+
+![Figure 3](3.png"Figure 3")
+
+### 3.1. Encoder
+
+编码器接收一个输入图像$I$并返回一个$f$维的特征向量$F$. 要保证编码器对图片的域差异具有鲁棒性。假设人脸识别模型能够去除掉人脸图片中与身份无关的信息。这样，在控制下的训练图像就能够和非限制场景图象映射到同一个空间。这就允许我们只在控制图像上训练就可以。
+
+### 3.2. Decoder
 
