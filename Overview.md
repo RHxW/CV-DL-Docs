@@ -1,10 +1,17 @@
 # Overview
 
 * 3DDFA：TODO
+* AdaptiveWingLoss：一个损失函数，在L1和L2基础上进行了修改，目的是更关注较小的损失
+* Attention Is All You Need：Transformers的文章，encoder-decoder的自注意力结构
+* Bilinear CNNs：TODO
+* ByeGlassesGAN：去眼镜、加眼镜的GAN
+* Clustering：
+  * CDP：共识传播
+  * VEGCN：检测分割范式用于图结构做聚类
+  * Online Deep Clustering for Unsupervised Representation Learning：用于人脸识别模型训练的半监督在线聚类
 * 2DASL：TODO
 * PRNet：TODO
 * WingLoss：为了解决关键点定位中关键点位置回归loss对小误差不敏感的特点而设计的loss函数
-* AdaptiveWingLoss：Todo
 * CornerNet：Todo
 * DAN：多阶段人脸关键点检测方法，上一个阶段的输出作为下一个阶段的输入，通过多个阶段迭代优化热力图
 * LAB：人脸关键点是高度结构化的数据，每个关键点都和一个明确定义的边界相关，所以可以利用面部结构的边界信息（线条）来辅助关键点回归，生成的边界质量越高，关键点回归就越准。
@@ -18,3 +25,9 @@
 * SSD：Todo
 * HR-Net：高分辨率网络，能在整个流程中保持高分辨率表示，用于人体姿态估计，也可做新的backbone
 * FAB：一个在模糊视频中利用时间维度上结构一致性的面部关键点检测的框架
+* Synthesizing Normalized Faces from Facial Identity Features：从特征重构归一化人脸
+* 超分
+* 去模糊
+* 人脸识别
+* 人脸质量
+* 人脸重建
