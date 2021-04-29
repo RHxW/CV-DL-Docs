@@ -32,7 +32,7 @@
 
 3）**Joint training using labeled and unlabeled data** - 最终，在多任务学习框架下，使用有标签数据和伪标签数据重新训练基础模型。
 
-![Figure 1](1.png"Figure 1")
+![Figure 1](1.png "Figure 1")
 
 > 从图中可以看到，pairs信息只由base feature生成（实际上pairs信息和feature无关）。然后使用committee members的features + pairs信息生成用于Mediator的数据（relationship，affinity，structure和训练用的pairs_label）。先训练mediator，然后就可以用mediator判断每一个pair所连接的两个顶点是否为同一类，就替代了vote策略。
 
@@ -66,7 +66,7 @@ $$
 $$
 D_{C_i}^x=\{\cos(\langle \mathcal{F}_{C_i},\mathcal{F}_{C_i} \rangle), k=1,2,...,K\}, \quad i=1,2,...,N. \qquad (3)
 $$
-![Figure 2](2.png"Figure 2")
+![Figure 2](2.png "Figure 2")
 
 > Fig. 2: **Committee and Mediator.** 这张图片展示了committee和mediator的工作机制。上图中有一些由base model和committee生成的不同的图中采样的节点。每一行中，两个红色的节点是候选对。第一行的节点对被mediator分类为正类，第二行的节点对则被分为负类。Committee给出包括"relation", "affinity", "local structure"在内的多种意见。"local structure"表示为第一级（红色边）和第二级（橙色边）邻居的分布。主要图中只展示了以两个节点中的一个为中心的"local structure"
 
@@ -93,7 +93,7 @@ $$
 
 一旦给无标签数据分配了伪标签，就可以使用这些数据增广有标签数据并更新base model. 由于不知道两个数据集的id交集，将学习作为一个多任务训练方式，如Fig 3所示。两个任务的CNN架构与base model一模一样，且共享权重。这两个CNN后都接了一个全连接层，将特征映射到对应的标签空间。整体的优化目标是$\mathcal{L}=\lambda \sum_{x_l,y_l}\ell(x_l,y_l)+(1-\lambda)\sum_{x_u,y_a}\ell(x_u,y_a)$,其中loss，$\ell(\cdot)$，与训练base model和committee所用的相同。在接下来的实验中，使用softmax作为损失函数。但是对于CDP而言，其loss并无特别的限制。在上面这个公式中，$\{x_l,y_l\}$代表有标签数据，$\{x_u,y_a\}$代表无标签数据和其被分配的标签。$\lambda\in(0,1)$是用于平衡两部分的权重。其值根据有标签图片和无标签图片的比例确定。从头开始训练模型。
 
-![Figure 3](3.png"Figure 3")
+![Figure 3](3.png "Figure 3")
 
 
 
@@ -105,7 +105,7 @@ $$
 
 **Committee Setup.** 为了创造一个高度异构的committee，使用了包括ResNet18, ResNet34, ResNet50, ResNet101, DenseNet121, VGG16, Inception V3, Inception-ResNet V2和NASNet-A的一个较小变体在内的CNN架构。实验中所使用的committee的成员数量为8，我们同样实验了0-8的数量。使用有标注数据训练所有这些网络，结果如Table 1所示。
 
-![Table 1](t1.png"Table 1")
+![Table 1](t1.png "Table 1")
 
 **Implementation Details.** mediator是一个有两个隐藏层的MLP分类器，每一个隐藏层包含50个节点，使用ReLU作为激活函数。测试时，将概率阈值设置为0.96，用于选择高置信度的样本对。
 
@@ -119,7 +119,7 @@ $$
 
 2）CDP大幅度超越了层次聚类基准，齐平甚至高于全监督方法。
 
-![Figure 4](4.png"Figure 4")
+![Figure 4](4.png "Figure 4")
 
 3）采用mediator方案的CDP的性能比采用原始投票法要好，这表示mediator聚合committee意见的能力更强。
 
@@ -127,7 +127,7 @@ $$
 
 **Visual Results.** 在Figure 9中可视化了CDP的结果。可以观察到CDP在识别label任务上的准确性较高而不受不同的背景、表情、姿态和光照的影响。同样可以看到CDP在选择配对候选时是有选择性的，它自动忽略了：1）错误标注的不属于任何id的人脸；2）很低质量的样本，包括高度模糊和卡通图片。这解释了为什么CDP可以超越全监督基准。
 
-![Figure 9](9.png"Figure 9")
+![Figure 9](9.png "Figure 9")
 
 
 
@@ -143,7 +143,7 @@ $$
 
 **Different Base Architectures.** 
 
-![Table 3](t3.png"Table 3")
+![Table 3](t3.png "Table 3")
 
 **Different $k$ in k-NN.** 将正样本对的概率阈值固定为0.96. 如Table 4所示，更大的$k$会得到更多的选中样本对，因此得到一个更密集的共识驱动图，但是其准确率几乎不变。
 
@@ -153,6 +153,6 @@ $$
 
 **Incorporating Advanced Loss Functions.** 见Table 6
 
-![Table 6](t6.png"Table 6")
+![Table 6](t6.png "Table 6")
 
 **Efficiency and Scalability.** CDP的运行时间呈线性增长，因此即高效又可扩展。

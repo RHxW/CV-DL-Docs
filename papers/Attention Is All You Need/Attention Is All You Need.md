@@ -28,7 +28,7 @@
 
 Transformer沿用了这一整体架构，编码器和解码器都使用堆叠的自注意力和逐点的全连接层，见Figure 1，分别位于左右两侧。
 
-![Figure 1](1.png"Figure 1")
+![Figure 1](1.png "Figure 1")
 
 
 
@@ -42,7 +42,7 @@ Transformer沿用了这一整体架构，编码器和解码器都使用堆叠的
 
 一个注意力函数可以描述成将一个查询(query)和一组键值对映射到一个输出的操作，其中查询、键、值和输出都是向量。输出通过值的加权和计算得到，而每个值的权重是通过查询中对应键的兼容性函数(compatibility function)计算得到的。
 
-![Figure 2](2.png"Figure 2")
+![Figure 2](2.png "Figure 2")
 
 
 
