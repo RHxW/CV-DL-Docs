@@ -17,6 +17,8 @@
 
 我们不是针对每个节点训练一个明确的嵌入向量，而是训练一组聚合器函数，让它们学习去从一个结点的邻居中聚合特征信息(Figure 1).每个聚合器函数都从给定节点的不同跳数，或称为搜索深度处聚合信息。测试或推理的时候，使用训练好的系统，在全部没见过节点上应用学习后的聚合函数来生成它们的嵌入。根据之前生成节点嵌入的工作，设计一个无监督损失函数，它可以允许GraphSAGE脱离特定任务监督而训练。同时GraphSAGE也可以通过全监督的方式来训练。
 
+![Figure 1](1.png "Figure 1")
+
 在三个节点分类的基准上进行了测试，blahblahblah
 
 ## 2 Related work
@@ -54,4 +56,13 @@ Algorithm 1描述了在整个图$\mathcal{G=(V,E)}$以及每个结点的特征$\
 (i) 设定$K=|\mathcal{V}|$,
 (ii) 将权重矩阵设定为单位阵，
 (iii) 使用一个合适的hash函数作为（无非线性）聚合器，
-那么Algorithm 1就是一个Weisferler-Lehman(WL)同构测试的实例，aka “naive vertex refinement”.
+那么Algorithm 1就是一个Weisferler-Lehman(WL)同构测试的实例，aka “naive vertex refinement”. 如果Algorithm 1对于两个子图输出的表达集合$\{\textbf{z}_v, \forall v \in \mathcal{V}\}$是一样的，就说明这个两个子图经过WL测试的结果为二者同构。GraphSAGE是WL测试的一个连续近似实现，其中将hash函数替换成可训练的神经网络聚合器。当然我们使用GraphSAGE是为了生成有用的节点表达，而非测试图的同构性。尽管如此，GraphSAGE与经典的WL测试之间的联系仍为我们学习节点邻居拓扑结构的的算法设计提供了理论支撑。
+
+**Neighbourhood definition.** 为了保证每个batch的computational footprint固定，我们在Algorithm 1中均匀采样一个固定尺寸的邻居集合，而非使用整个邻居集合。也就是在Algorithm 1中，将$\mathcal{N}(v)$定义为固定尺寸、从集合$\{u \in \mathcal{V}:(u,v) \in \mathcal{E}\}$中均匀采样得到的节点集合，并且在每个循环$k$中都进行均匀采样。如果不这样采样的话，一个单独batch占用的内存和预期运行时间都无法预测，最差可能达到$O{|\mathcal{V}|}$. 作为对比，GraphSAGE每个batch的空间和时间复杂度是固定的，为$O(\Pi_{i=1}^K S_i)$，其中$S_i,i\in \{1,...,K\}$，$K$是指定的常数。实际上我们发现在$K=2 and S_1 \cdot S_2 \le 500$的时候效果更好。
+
+### 3.2 Learning the parameters of GraphSAGE
+为了能够无监督地学习有用的、可以预测的表示，我们对于输出的表达$\textbf{z}_u, \forall u \in \mathcal{V}$采用了一种基于图的损失函数，并且通过SGD来调整更新权重矩阵$\textbf{W}^k, \forall k \in \{1,...,K\}$和聚合器函数的参数。基于图的loss函数会推动相邻的节点获取相似的表达，并强制使不相关的节点表达呈现较大差异：
+$$
+J_{\mathcal{G}}(\textbf{z}_u)=-\log(\sigma(\textbf{z}_u^T\textbf{z}_v))-Q \cdot \mathbb{E}_{v_n \sim P_n(v)}\log(\sigma(\textbf{z}_u^T\textbf{z}_{v_n})), \qquad (1)
+$$
+其中$v$是从$u$进行随机游走时出现的节点，$\sigma$是sigmoid函数
