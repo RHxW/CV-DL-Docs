@@ -58,7 +58,7 @@ Algorithm 1描述了在整个图$\mathcal{G=(V,E)}$以及每个结点的特征$\
 (iii) 使用一个合适的hash函数作为（无非线性）聚合器，
 那么Algorithm 1就是一个Weisferler-Lehman(WL)同构测试的实例，aka “naive vertex refinement”. 如果Algorithm 1对于两个子图输出的表达集合$\{\textbf{z}_v, \forall v \in \mathcal{V}\}$是一样的，就说明这个两个子图经过WL测试的结果为二者同构。GraphSAGE是WL测试的一个连续近似实现，其中将hash函数替换成可训练的神经网络聚合器。当然我们使用GraphSAGE是为了生成有用的节点表达，而非测试图的同构性。尽管如此，GraphSAGE与经典的WL测试之间的联系仍为我们学习节点邻居拓扑结构的的算法设计提供了理论支撑。
 
-**Neighbourhood definition.** 为了保证每个batch的computational footprint固定，我们在Algorithm 1中均匀采样一个固定尺寸的邻居集合，而非使用整个邻居集合。也就是在Algorithm 1中，将$\mathcal{N}(v)$定义为固定尺寸、从集合$\{u \in \mathcal{V}:(u,v) \in \mathcal{E}\}$中均匀采样得到的节点集合，并且在每个循环$k$中都进行均匀采样。如果不这样采样的话，一个单独batch占用的内存和预期运行时间都无法预测，最差可能达到$O{|\mathcal{V}|}$. 作为对比，GraphSAGE每个batch的空间和时间复杂度是固定的，为$O(\Pi_{i=1}^K S_i)$，其中$S_i,i\in \{1,...,K\}$，$K$是指定的常数。实际上我们发现在$K=2 and S_1 \cdot S_2 \le 500$的时候效果更好。
+**Neighbourhood definition.** 为了保证每个batch的computational footprint固定，我们在Algorithm 1中均匀采样一个固定尺寸的邻居集合，而非使用整个邻居集合。也就是在Algorithm 1中，将$\mathcal{N}(v)$定义为固定尺寸、从集合$\{u \in \mathcal{V}:(u,v) \in \mathcal{E}\}$中均匀采样得到的节点集合，并且在每个循环$k$中都进行均匀采样。如果不这样采样的话，一个单独batch占用的内存和预期运行时间都无法预测，最差可能达到$O{|\mathcal{V}|}$. 作为对比，GraphSAGE每个batch的空间和时间复杂度是固定的，为$O(\Pi_{i=1}^K S_i)$，其中$S_i,i\in \{1,...,K\}$，$K$是指定的常数。实际上我们发现在$K=2 \quad and \quad S_1 \cdot S_2 \le 500$的时候效果更好。
 
 ### 3.2 Learning the parameters of GraphSAGE
 为了能够无监督地学习有用的、可以预测的表示，我们对于输出的表达$\textbf{z}_u, \forall u \in \mathcal{V}$采用了一种基于图的损失函数，并且通过SGD来调整更新权重矩阵$\textbf{W}^k, \forall k \in \{1,...,K\}$和聚合器函数的参数。基于图的loss函数会推动相邻的节点获取相似的表达，并强制使不相关的节点表达呈现较大差异：
@@ -77,5 +77,13 @@ $$
 \textbf{h}_v^k \leftarrow \sigma(\textbf{W}\cdot \text{MEAN}(\{\textbf{h}_v^{k-1}\} \cup \{\textbf{h}_u^{k-1}, \forall u \in \mathcal{N}(v)\})). \qquad (2)
 $$
 因为这个基于平均修改得来的聚合器基本上可以算是局部谱卷积的一个粗略的线性近似，所以将这个聚合器称作*卷积*。这个卷积聚合器和其他聚合器的一个很重要的不同在于它不会进行Algorithm 1中第五行的拼接操作，即这个卷积聚合器会将节点在之前层的表达$\textbf{h}_v^{k-1}$与聚合后的邻居向量$\textbf{h}_{\mathcal{N}(v)}^k$进行拼接。这一拼接操作可以视为在不同“搜索深度”或“层”间的简单版的“跳跃链接”，这实现了较大的性能增益。
+>注：这里的mean aggregator就如作者所说，与gcn没有什么区别，因为在gcn中有$H^{(l+1)}=\sigma \big(\hat{A}H^{(l)}W^{(l)}\big)$,这个式子中**归一化的**邻接矩阵和上一层的特征相乘的操作基本上就相当于GraphSAGE中提到的mean aggregator，不过gcn是根据A进行整体的加权平均，而GraphSAGE是在邻域内进行平均，所以GraphSAGE天生支持batch操作
 
-**LSTM aggregator.** 
+**LSTM aggregator.** 同样尝试了基于LSTM架构的更复杂的聚合器。与平均聚合器相比，LSTMs的优势在于更大的表达容量。但是需要注意的是由于LSTMs按序列形式处理数据，所以它们本身并不是对称的（即它们对于顺序是敏感的）。通过在随机顺序的节点邻居上使用LSTMs来将LSTMs修改为能在无序集合上使用的形式。
+
+**Pooling aggregator.** 我们尝试的最后一个聚合器即对称又可训练。在这个*池化*的方法中，每个邻居的向量都独立地传入一个全连接神经网络；在这一变换之后，采用一个最大池化操作来聚合跨邻居集合的信息：
+$$
+\text{AGGREGATE}_k^{\text{pool}}=\max(\{\sigma(\textbf{W}_{\text{pool}}\textbf{h}_{u_i}^k+\textbf{b}),\forall u_i \in \mathcal{N}(v)\}), \qquad (3)
+$$
+其中max代表元素级max算子，$\sigma$是一个非线性激活函数。原则上，在max操作之前使用的函数可以是一个任意的深度多层感知器，但是本文中我们只关注简单的单层架构。直观上这个多层感知器可以看作一组函数的集合，这些函数对每个节点在邻居集合中的表达进行计算得到特征。通过在每个计算得到的特征上使用最大池化算子，模型有效地捕捉到了邻居集合的不同方面。同样值得注意的是，原则上任何对称的向量函数都可以替换max算子（如元素级平均）。在测试中没发现max-pooling和mean-pooling有太大差距，后续都使用max-pooling.
+
