@@ -6,8 +6,9 @@
 * Bilinear CNNs：TODO
 * ByeGlassesGAN：去眼镜、加眼镜的GAN
 * Clustering：
-  * CDP：共识传播
-  * VEGCN：检测分割范式用于图结构做聚类
+  * CDP：共识传播（集成学习）
+  * Density-Aware Feature Embedding for Face Clustering：密度链获取节点特征（密度概念与gcnv中节点置信度很相似）
+  * VEGCN：图卷积用于图结构做聚类；v:顶点，e:边
   * Efficient Large-Scale Face Clustering Using an Online Mixture of Gaussians：混合高斯模型在线聚类，具体是认为只用一个聚类无法较好覆盖一个人的人脸图片分布，因此采用多个聚类来代表一个人，于是设计了一套规则来判断某一聚类是一个人的子聚类还是主聚类，另外还设计了一套在线聚类的流程，较繁琐
   * Online Deep Clustering for Unsupervised Representation Learning：用于人脸识别模型训练的半监督在线聚类
   * Structure-Aware Face Clustering on a Large-Scale Graph with 10^7 Nodes：STAR-FC，用于大规模数据训练的GCN聚类方法；由于GCN的训练需要把整张图传入模型，这就导致训练数据的规模受显存限制。可以通过随机采样的方式将子图传入模型训练，但是这样无法保证子图包含全局的结构信息。提出一个能同时覆盖局部结构信息和全局结构信息的随机采样法和一套剪枝方案
@@ -28,7 +29,11 @@
   * StyleGAN：TODO
   
 * GCN：
-  * Semi-Supervised Classification with Graph Convolutional Networks：TODO
+  * Semi-Supervised Classification with Graph Convolutional Networks：17年图卷积论文，原理和实现形式
+
+* GNN:
+  * Inductive Representation Learning on Large Graphs: GraphSAGE，inductive方法，提出几个聚合器（平均、池化、LSTM）；与基于矩阵分解的嵌入方法不同，GraphSAGE利用节点特征（如文本属性、节点描述信息、节点度）来学习一个能够泛化到没见过节点的嵌入函数。通过在学习算法中结合节点特征，同时学习每个节点邻居的拓扑结构，以及节点特征在邻居中的分布。
+  * GRAPH ATTENTION NETWORKS: TODO
   
 * HR-Net：高分辨率网络，能在整个流程中保持高分辨率表示，用于人体姿态估计，也可做新的backbone
 * Inception：TODO
