@@ -70,7 +70,7 @@ $$
 
 ![Figure 4](4.png "Figure 4")
 
-进一步将上述计算通过矩阵操作来实现。给定邻接矩阵$A \in \mathbb{R}^{N\times N}$, 所有节点对的共同邻居节点个数为$\tilde{A}=AA$, 其中$\tilde{A}$的每个元素$\tilde{a}_{ij}$代表第$\mathcal{N}_j$和$\mathcal{N}_j$节点的共同的邻居节点数。那么NI就可以表示为：
+进一步将上述计算通过矩阵操作来实现。给定邻接矩阵$A \in \mathbb{R}^{N\times N}$, 所有节点对的共同邻居节点个数为$\tilde{A}=AA$, 其中$\tilde{A}$的每个元素$\tilde{a}_{ij}$代表第$\mathcal{N}_i$和$\mathcal{N}_j$节点的共同的邻居节点数。那么NI就可以表示为：
 $$
 NI=\max((\tilde{A^T}sum_0)^T,\tilde{A}sum_1), \qquad (3) \\
 sum_0=vec({\sum_j a_{\cdot j}}^{-1}), \quad sum_1=vec({\sum_j a_{i \cdot}}^{-1}),
