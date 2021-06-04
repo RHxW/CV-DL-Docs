@@ -211,3 +211,26 @@ $$
 \text{KL}(p\lVert q)=-\int p(\textbf{x}) \ln q(\textbf{x}) \text{d}\textbf{x} - (-\int p(\textbf{x}) \ln p(\textbf{x}) \text{d}\textbf{x}) \\
 = -\int p(\textbf{x}) \ln \frac{q(\textbf{x})}{p(\textbf{x})} \text{d}\textbf{x}.
 $$
+称为分布$p(\textbf{x})$和$q(\textbf{x})$间的*相对熵(relative entropy)或Kullback-Leibler divergence, KL divergence*. 这个值是不对称的，即$\text{KL}(p\lVert q)\not\equiv \text{KL}(q\lVert p)$.
+KL-散度满足$\text{KL}(p\lVert q)\ge 0$，当且仅当$p(\textbf{x})=q(\textbf{x})$时取等号。根据凸函数的性质可以证明。
+
+可以看到数据压缩和密度估计（即对一个未知概率分布进行建模的问题）之间的联系很紧密，因为只有得知真实分布的时候我们才能进行最有效的压缩。如果使用的分布与真实分布存在差距，则编码效率必然会下降，而平均增加的信息就等于两个分布间的KL-散度。
+假设数据是在一个未知分布$p(\textbf{x})$中生成的，我们希望对这个分布进行建模。可以尝试使用一些通过参数$\theta$调节的参数分布$p(\textbf{x}|\theta)$来近似，例如多元高斯分布。一种选择$\theta$的方式就是最小化$p(\textbf{x})$和$p(\textbf{x}|\theta)$间关于$\theta$的KL-散度，但是并不能直接进行计算因为并不知道$p(\textbf{x})$.
+
+对于两个变量的联合分布，如果两个变量相互独立，则联合分布等于两个边缘分布的乘积$p(\textbf{x,y})=p(\textbf{x})p(\textbf{y})$. 如果它们不独立，则可以通过计算联合分布和边缘分布乘积的KL-散度得到二者有多么“靠近”相互独立：
+$$
+\textbf{I[x,y]} \equiv \text{KL}(p(\textbf{x,y})\lVert p(\textbf{x})p(\textbf{y})) \\
+= -\int \int p(\textbf{x,y})\ln \Big( \frac{ p(\textbf{x})p(\textbf{y})}{p(\textbf{x,y})} \Big) \text{d}\textbf{x}\text{d}\textbf{y}
+$$
+称为变量x与y间的*互信息(mutual information)*. 由KL-散度的性质可知，$I(\textbf{x}, \textbf{y})\ge 0$，当且仅当二者相互独立时取等号。互信息与相对熵之间的联系：
+$$
+\textbf{I[x,y]}=\textbf{H[x]}-\textbf{H[x|y]}=\textbf{H[y]}-\textbf{H[y|x]}
+$$
+
+可以将互信息视作当得知y的值时，x的不确定性的减少量（反之亦然）。从贝叶斯的角度，可以将$p(\textbf{x})$视作x的先验分布，将$p(\textbf{x|y})$视作观察新数据y之后的后验分布。这样的话互信息就代表了当观察到y之后x不确定性的减少量。
+
+
+# Chapter 2. PROBABILITY DISTRIBUTIONS
+*密度估计(density estimation)*：给定有限的观测集合，对随机变量的概率分布进行建模。
+本章假设数据点都是独立同分布的。
+需要强调，密度估计问题本质上是ill-posed的问题，因为对于同一个有限的观测集，有无数多个分布都可以得到。
