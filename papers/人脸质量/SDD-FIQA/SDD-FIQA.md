@@ -4,11 +4,11 @@
 
 为了保证非限制场景下人脸识别系统的稳定性和识别可靠性，人脸图像质量评估(FIQA, Face Image Quality Assessment)方法应该同时考虑人脸图像的内在性质和可识别性。大多数已有方法将样本embedding不确定性或样本对的相似度作为质量分数，这样做只考虑了部分的类内信息，却忽略了用于估计人脸图像可识别性的宝贵的类间信息。本文提出，一张高质量的人脸图片应该与其同类样本相似而与类外样本不相似。因此提出一个新的无监督FIQA方法，用于人脸图片质量评估的相似度分布距离(SDD-FIQA, Similarity Distribution Distance for Face Image Quality Assessment). 本方法生成质量的伪标签用来计算类内相似度分布与类间相似度分布间的Wasserstein距离。然后使用这些质量分数伪标签来训练一个回归网络用作质量预测。
 
-![Figure 1](1.png"Figure 1")
+![Figure 1](1.png "Figure 1")
 
 Figure 1
 
-![Figure 2](2.png"Figure 2")
+![Figure 2](2.png "Figure 2")
 
 ## 3. The Proposed SDD-FIQA
 
@@ -18,7 +18,7 @@ SDD-FIQA的架构如Figure 2所示
 
 ### 3.1. Generation of Quality Pseudo-labels
 
-本节介绍人脸图像质量和人脸识别性能间的联系。证明这种关系可以通过ERVC(Error Versus Reject Curve)推断得到。假设$\mathcal{S_X}^P=\{\mathcal{S}_{x_i}^P\}_{i=1}^n$和$\mathcal{S_X}^N=\{\mathcal{S}_{x_i}^N\}_{i=1}^n$分别是正样本和负样本的相似度集合。$\mathcal{S_{X|<\xi}}^P$代表$\mathcal{S_X}^P$中相似度小于阈值$\xi$的子集。$\mathcal{S_{X|>\xi}}^P$代表$\mathcal{S_X}^P$中相似度大于阈值$\xi$的子集，$\xi \in [-1,1]$. 那么误匹配率(FMR, False Match Rate)和误未匹配率(FNMR, False No-Match Rate)可以分别定义为
+本节介绍人脸图像质量和人脸识别性能间的联系。证明这种关系可以通过EVRC(Error Versus Reject Curve)推断得到。假设$\mathcal{S_X}^P=\{\mathcal{S}_{x_i}^P\}_{i=1}^n$和$\mathcal{S_X}^N=\{\mathcal{S}_{x_i}^N\}_{i=1}^n$分别是正样本和负样本的相似度集合。$\mathcal{S_{X|<\xi}}^P$代表$\mathcal{S_X}^P$中相似度小于阈值$\xi$的子集。$\mathcal{S_{X|>\xi}}^P$代表$\mathcal{S_X}^P$中相似度大于阈值$\xi$的子集，$\xi \in [-1,1]$. 那么误匹配率(FMR, False Match Rate)和误未匹配率(FNMR, False No-Match Rate)可以分别定义为
 $$
 fmr=R_{fm}(\mathcal{X}, \xi)=\frac{|\mathcal{S_{X|>\xi}^\mathit{N}}|}{|\mathcal{S_X^\mathit{N}}|} \qquad (1) \\
 fnmr=R_{nfm}(\mathcal{X}, \xi)=\frac{|\mathcal{S_{X|<\xi}^\mathit{P}}|}{|\mathcal{S_X^\mathit{P}}|} \qquad (2)
