@@ -48,3 +48,8 @@ $$
 其中$\mathbb{WD}(\cdot)$代表Wasserstein距离，$\Pi(S_{x_i}^P,S_{x_i}^N)$代表所有边缘分布为$S_{x_i}^P$和$S_{x_i}^N$的联合分布$\gamma(s_{x_i}, s_{y_i})$的集合。
 
 。。。
+
+生成pseudo-labels的具体实现：
+1. 计算每个id的类内距离和类间距类，设共n个id，采样个数为m，则获取了类内距离数组和类间距离数组尺寸都为n*m（对于类内距离，假设满足所有类别内图片数都大于m，否则为当前类别内图片数）
+2. 对每张图片，使用它的类内距离和类间距离计算Wasserstein Distance
+3. 根据Wasserstein Distance计算得到quality score
