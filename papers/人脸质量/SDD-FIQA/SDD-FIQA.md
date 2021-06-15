@@ -53,3 +53,6 @@ $$
 1. 计算每个id的类内距离和类间距类，设共n个id，采样个数为m，则获取了类内距离数组和类间距离数组尺寸都为n*m（对于类内距离，假设满足所有类别内图片数都大于m，否则为当前类别内图片数）
 2. 对每张图片，使用它的类内距离和类间距离计算Wasserstein Distance
 3. 根据Wasserstein Distance计算得到quality score
+
+网络结构：论文采用了迁移学习策略，将一个识别模型的分类层替换并加上了dropout
+loss函数采用huber loss
