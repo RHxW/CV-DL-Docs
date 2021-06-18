@@ -285,3 +285,16 @@ $$
 有K个互斥状态的离散变量
 
 ### 2.2.1 The Dirichlet distribution
+
+## 2.3. The Gaussian Distribution
+形式：
+$$
+\mathcal{N}(x|\mu, \sigma^2)=\frac{1}{(2\pi \sigma^2)^{1/2}}\exp{-\frac{1}{2\sigma^2}(x-\mu)^2}
+$$
+其中$\mu, \sigma^2$分别是均值和方差。
+D维的多元高斯分布形式：
+$$
+\mathcal{N}(\textbf{x}|\mu ,\Sigma)=\frac{1}{(2\pi)^{D/2}}\frac{1}{|\Sigma|^{1/2}}\exp \Big\{ -\frac{1}{2}(\textbf{x}-\mu)^T\Sigma^{-1}(\textbf{x}-\mu) \Big\}
+$$
+其中$\mu, \Sigma, |\Sigma|$分别是D维的均值向量、$D\times D$的协方差矩阵和$\Sigma$的行列式
+
