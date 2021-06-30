@@ -1,1 +1,0 @@
-# Convolutional Neural Networks for No-Reference Image Quality Assessment
