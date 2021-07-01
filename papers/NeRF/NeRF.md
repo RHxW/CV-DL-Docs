@@ -41,3 +41,4 @@ $$
 ![Figure 4](4.png "Figure 4")
 
 ## 5 Optimizing a Neural Radiance Field
+尽管神经网络是全局函数近似器，我们发现让网络$F_{\Theta}$直接作用于$xyz\theta\phi$
