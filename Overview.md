@@ -58,4 +58,18 @@
   * Unsupervised Domain-Specific Deblurring via Disentangled Representations：将模糊信息从图像中解耦
 * 人脸识别
 * 人脸质量
+  * Deep Tiny Network for Recognition-Oriented Face：
+  * EQFace
+  * Face image quality assessment
+  * FaceQnet
+    * v0
+    * v1
+  * Inducing Predictive Uncertainty Estimation for Face Recognition
+  * IQA
+    * RankIQA
+  * QAN
+    * QAN
+    * QAN++
+  * SDD-FIQA
+  * SER-FIQ
 * 人脸重建
