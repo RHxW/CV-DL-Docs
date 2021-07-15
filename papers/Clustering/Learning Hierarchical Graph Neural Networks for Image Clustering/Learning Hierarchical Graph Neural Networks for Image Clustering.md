@@ -48,4 +48,27 @@ average feature是这个聚类的平均特征
 
 ### Hi-LANDER Learning
 因为超节点的融合后特征与节点的原始特征总是位于同一个嵌入空间，因此可以在多层结构中共享同一个GNN模型参数
-**Hierarchical Training Strategy** 
+**Hierarchical Training Strategy** 给定k和gt标签，就可以确定当层次聚合收敛的时候的等级L. 因此按照Algorithm 1中的方法构建图的序列$\{G_l\}$，唯一不一样的地方是我们在每一层都使用gt的边连接信息$\{E_l'^{gt}\}$，因此也使用了gt的中间级聚类结果$\{G_l'^{gt}\}$来进行图的构建。初始化LANDER并在全部的中间图$\{G_l\}$上进行训练。在一个epoch中，对每个$G_l$进行循环，在$\{G_l\}$上前向传播，然后计算loss
+
+**Training Loss** loss由两部分组成：
+$$
+\mathcal{L}=\mathcal{L}_{conn}+\mathcal{L}_{den}
+$$
+第一项提供对连接预测的监督，使用每条边平均连接损失：
+$$
+\mathcal{L}_{conn}=-\frac{1}{|E|} \sum_{(v_i,v_j)\in E} l_{ij}
+$$
+其中$l_{ij}$是每条边的loss：
+$$
+l_{ij}=
+\begin{cases} 
+q_{ij}\log p_{ij}+(1-q_{ij})\log(1-p_{ij}),&\text{if $d_i \le d_j$}\\
+0,&\text{otherwise}
+\end{cases}
+$$
+q是gt标签，当这条边所连接的两个节点属于同一类的时候为1.
+第二项代表邻居密度平均loss：
+$$
+\mathcal{L}_{den}=\frac{1}{|V|}\sum_{i=1}^{|V|}\lVert d_i-\hat{d_j}\rVert _2^2
+$$
+训练的时候这两项在所有层的数据上进行平均。
