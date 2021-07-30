@@ -1,6 +1,5 @@
 # Overview
 
-* 3DDFA：TODO
 * AdaptiveWingLoss：一个损失函数，在L1和L2基础上进行了修改，目的是更关注较小的损失
 * Attention Is All You Need：Transformers的文章，encoder-decoder的自注意力结构
 * Bilinear CNNs：TODO
@@ -18,7 +17,6 @@
 * Deep Multi-Center Learning for Face Alignment：将人脸划分为多个子区域分别进行关键点定位，再和并得到最终定位结果
 * DEEP VARIATIONAL INFORMATION BOTTLENECK：变分信息瓶颈，信息瓶颈理论认为神经网络可以提供一个瓶颈用于压缩映射到隐空间的数据量，去掉的是无价值数据或噪声数据；变分信息瓶颈是信息瓶颈理论的变分法近似，具体实现是将隐空间分布（通过KL散度）拉向标准正态分布（在目标函数中加入这个正则化项），以期提升泛化性能
 * Deformable Convolutional Networks：针对传统卷积中固定的几何结构（卷积核）在面对几何变换建模上的天生不足而提出形变卷积和形变RoI pooling用于加强CNN对形变的建模能力。实现方式是通过引入一个特征图上的偏移量来改变感受野区域。
-* DSFD：TODO
 * CornerNet：TODO
 * LAB：人脸关键点是高度结构化的数据，每个关键点都和一个明确定义的边界相关，所以可以利用面部结构的边界信息（线条）来辅助关键点回归，生成的边界质量越高，关键点回归就越准。
 
@@ -43,9 +41,7 @@
   * MobileNet V2：TODO
 * Objects as Points：Center net
 * PFLD：关键点检测，辅助网络估计旋转信息用于辅助关键点回归
-* RetinaFace：检测+对齐+dense回归（图卷积网络）
 * SSD：Todo
-* SSH：一阶段人脸检测，在不同尺度的特征图上使用检测模块实现多尺度检测
 * SSR-Net：将年龄估计问题用多分类+分类结果回归的方式解决
 * Synthesizing Normalized Faces from Facial Identity Features：从特征重构归一化人脸
 * Visualizing and Understanding Convolutional Networks：TODO
@@ -56,6 +52,13 @@
 * 去模糊：
   * Online Video Deblurring via Dynamic Temporal Blending Network：视频去模糊，动态时域混合网络
   * Unsupervised Domain-Specific Deblurring via Disentangled Representations：将模糊信息从图像中解耦
+
+* 人脸检测
+  * DSFD：TODO
+  * RetinaFace：检测+对齐+dense回归（图卷积网络）
+  * SCRFD：检测模型，神经架构搜索
+  * SSH：一阶段人脸检测，在不同尺度的特征图上使用检测模块实现多尺度检测
+  * YOLO5Face：用YOLOv5进行人脸检测
 * 人脸识别
 * 人脸质量
   * Deep Tiny Network for Recognition-Oriented Face：
@@ -73,3 +76,8 @@
   * SDD-FIQA
   * SER-FIQ
 * 人脸重建
+  * 3DDFA：
+    * v1：
+    * v2：
+  * 2DASL：
+  * PRNet：
