@@ -68,18 +68,31 @@ V(\mathrm{\textbf{p}})=f*\mathrm{\textbf{Pr}}*\mathrm{\textbf{R}}*(\bar{\mathrm{
 $$
 其中$V(\mathrm{\textbf{p}})$是模型构建和投影函数，生成模型顶点的2D位置，$f$是缩放因子，$\mathrm{\textbf{Pr}}$是正交投影矩阵
 $$
-(
-\begin{matrix} 
+\begin{pmatrix} 
 1 & 0 & 0 \\ 
 0 & 1 & 0
-\end{matrix}
-)
+\end{pmatrix}
 $$
 $\mathrm{\textbf{R}}$是旋转矩阵，$\mathrm{\textbf{t}}_{2d}$是平移向量。全部模型参数的集合为$\mathrm{\textbf{p}}=[f,\mathrm{\textbf{R}},\mathrm{\textbf{t}}_{2d}, \alpha_{id}, \alpha_{exp}]^{\mathrm{T}}$.
 
 #### 3.1.1 Rotation Formulation
 一般人脸旋转用欧拉角来表示。但是当人脸接近侧脸的时候，欧拉角会出现万向节锁，如Figure 3所示。
 ![Figure 3](3.png "Figure 3")
-欧拉角可能出现的这种歧义情况会使回归器出问题，影响拟合性能。因此使用四维
+欧拉角可能出现的这种歧义情况会使回归器出问题，影响拟合性能。因此使用单位四元数$[q_0,q_1,q_2,q_3]$来表示旋转。
+实现上不要求四元数是单位四元数，使用了缩放参数$\sqrt f$. 则拟合的目标为$\textbf{p}=[q_0,q_1,q_2,q_3,t_{2d},\alpha_{id}, \alpha_{exp}]^T$
 
-TODO
+### 3.2 Feature Design
+作为级联回归和CNN的连接点，输入的特征应该同时满足这两个框架的要求，主要有：
+1. 可卷积性质
+2. 反馈性质
+3. 收敛性质
+
+人脸对齐的输入特征可以分成两类：
+1. 图片视角特征，将原图直接传入回归器。这种方式不损失图片信息，但是需要回归器能够覆盖任意人脸外观。
+2. 模型视角特征，将图片的像素根据模型状态重新排列。这种特征将人脸外观与外形拟合，在优化时大幅度简化了对齐任务。但是这种方式无法覆盖人脸模型以外的像素，就导致上下文信息的描述变差。
+
+本文提出一个模型视角特征，称为姿态适应特征(Pose Adaptive Feature, PAF)和一个图片视角特征，称为投影归一化坐标编码(Projected Normalized Corrdinate Code, PNCC)
+
+#### 3.2.1 Pose Adaptive Convolution
+传统的卷积层在2D图上进行卷积操作，而我们希望在人脸上语义连续的位置进行卷积，称为姿态适应卷积(Pose Adaptive Convolution,PAC)。因为人脸可以近似成一个圆柱体，所以使用柱坐标表示每个顶点，并采样固定方位角和高度范围内的64*64的特征，如Figure 4所示。
+
