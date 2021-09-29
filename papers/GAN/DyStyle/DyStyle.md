@@ -16,7 +16,7 @@
 ## Method
 ### Framework
 如Figure 2所示，本方法使用DyStyle网络对扩展后的latent code$\textbf{W}+$进行编辑。扩展后的latent code$\textbf{W}+$包含18个512维的向量，每一个都对应StyleGAN2生成器的一个输入层。与$\textbf{W}$相比，$\textbf{W}+$极大地扩展了latent space并且再指定生成真实图片表达的时候由更小的重建误差。$\textbf{W}+$既可以通过StyleGAN的Style Mapping Network根据一个随机高斯噪声得到，也可以通过pSp或E4E的image-to-style编码器生成真实图片的编码。DyStyle网络接收属性设置和$\textbf{W}+$作为输入并预测得到一个修改后的latent code$\hat{\textbf{W}}+$. 属性的设置$\textbf{Attr}$是由用户指定的一组属性值，定义了生成图片的样式。在本作中属性集合包含数值型属性（如，头部姿态的角度，年龄）和二元属性（如眼镜、微笑、黑头发、小胡子、闭眼、张嘴）。不需要调整框架就可以增加属性的数量。
-修改后的latent code$\hat{\textbf{W}}+$传入StyleGAN2的生成器得到对应的图片$I_M$. 与此同时原始latent code$\textbf{W}$生成得到未经修改的图片$I_U$. $I_M$应该保持$I_U$的身份同时对应目标属性的变化。这个限制通过预训练的属性预测器$N_{attr}$和一个预训练的身份识别模型$N_{id}$进行控制。
+修改后的latent code$\hat{\textbf{W}}+$传入StyleGAN2的生成器得到对应的图片$I_M$. 与此同时原始latent code$\textbf{W}+$生成得到未经修改的图片$I_U$. $I_M$应该保持$I_U$的身份同时对应目标属性的变化。这个限制通过预训练的属性预测器$N_{attr}$和一个预训练的身份识别模型$N_{id}$进行控制。
 
 ### Dynamic network architecture
 DyStyle的结构如Figure 3所示。DyStyle网络对每个$\textbf{W}_l+$都会进行单独处理，将属性设置和$\textbf{W}_l+$作为输入并输出代理编码P用于对$\textbf{W}_l+$进行线性变换。因为使用属性设置和$\textbf{W}_l+$共同影响代理编码，相比于只使用属性设置，网络能够对每个输入$\textbf{W}+$都适应性地预测一个代理编码，而非生成一个统一的调节参数。DyStyle网络采用多个experts来分别处理不同的属性，然后它们会通过交叉注意力和元素加法进行融合，这样每一个expert都能够在属性交互前专注于处理一个属性。使用交叉注意力的原因有两点：
