@@ -32,4 +32,9 @@ $$
 
 ### 3.2. Self-distributed Grouping
 本文中将一个分组定义为一个拥有共同的视觉或非视觉特征的样本的集合。这样的分组是通过一个GDN来确定的。这个GDN是用一种自分组方法逐步训练得到的，通过考虑潜在分组的分布提供分组标签而不需明确的gt信息。
-**Naïve Labeling.** 一种确定分组标签的朴素方法是
+**Naïve Labeling.** 一种确定分组标签的朴素方法是取softmax输出最大的索引作为标签。用一个全连接+softmax的GDN $f$来确定一个样本x的对应分组$G^*$:
+$$
+p(G_k|x)=\text{softmax}_k(f(x)) \\
+G^*(x)=\argmax_kp(G_k|x),
+$$
+其中$G_k$是第k个分组。
