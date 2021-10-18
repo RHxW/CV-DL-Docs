@@ -37,4 +37,38 @@ $$
 p(G_k|x)=\text{softmax}_k(f(x)) \\
 G^*(x)=\argmax_kp(G_k|x),
 $$
-其中$G_k$是第k个分组。
+其中$G_k$是第k个分组。对分组分布缺乏考虑的情况会导致朴素方法将大多数样本分到一个或少数几个组中。
+
+**Self-distributed Labeling.** 介绍一个高效打标签的方法，使用一个根据先验概率规范化后的改良概率来生成均匀分布的分组标签。定义一个期望归一化概率$\tilde{p}$来平衡K个分组间的样本数量：
+$$
+\tilde{p}(G_k|x)=\frac{1}{K}\{p(G_k|x)-E_{x\sim \text{data}}[p(G_k|x)]\}+\frac{1}{K}
+$$
+其中第一个$frac{1}{K}$将归一化概率约束到0到1之间。然后期望归一化概率的期望的计算方式为：
+$$
+\begin{align*}
+E_{x\sim \text{data}}[\tilde{p}(G_k|x)]&=\frac{1}{K}\{E_{x\sim \text{data}}[p(G_k|x)]-E_{x\sim \text{data}}[p(G_k|x)]\}+\frac{1}{K} \\
+&=\frac{1}{K}
+\end{align*}
+$$
+最优自分布标签为：
+$$
+G^*(x)=\argmax_k\tilde{p}(G_k|x)
+$$
+训练的GDN会估计一组分组概率，代表样本属于某个分组的概率。当样本数量趋于无穷的时候，该方法会稳定输出均匀分布的标签，见Figure 3。
+![Figure 3](3.png "Figure 3")
+
+### 3.3. Learning
+GroupFace的网络通过用于区分id信息的标准softmax类loss和用于区分分组信息的自分组loss进行训练。
+**Loss Function.** 使用的是ArcFace的loss:
+$$
+L_1=-\frac{1}{N}\sum_{i=1}^N \log \frac{e^{s(\cos (\theta_{y_i}+m))}}{e^{s(\cos (\theta_{y_i}+m))}+\sum_{j=1,j\neq y_i}^n e^{s(\cos(\theta_j))}}
+$$
+self-grouping loss用来减小预测值和自生成label见差异：
+$$
+L_2=-\frac{1}{N}\sum_{i=1}^N \text{CrossEntropy}(\text{softmax}(f(x_i)),G^*(x_i))
+$$
+**Training.** 训练时的loss是两个loss的组合：
+$$
+L=L_1+\lambda L_2
+$$ 
+其中系数$\lambda$取0.1. 这样GDN就可以学习分组，这个属性对人脸识别是有帮助的
