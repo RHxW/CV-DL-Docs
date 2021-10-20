@@ -1,0 +1,3 @@
+# Spherical Confidence Learning for Face Recognition
+## Abstract
+研究发现，球空间更适合人脸图片潜在的几何结构。但是这些方法依赖于确定的embeddings，因此受特征不确定的影响，这样模糊的或噪音图片就会被映射到表达空间中较差学习的区域，导致识别不准确的现象。PFE(Probabilistic Face Embeddings)是第一个尝试解决这一问题的方法。但是我们发现了PFE在理论上和经验上的两个主要缺陷。为了解决这些问题，本文提出一个新的球空间中人脸置信度学习框架。
