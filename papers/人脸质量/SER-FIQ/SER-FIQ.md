@@ -22,7 +22,7 @@
 
 Figure 1展示了其工作原理
 
-![Figure 1](1.png"Figure 1")
+![Figure 1](1.png "Figure 1")
 
 *提出的无监督人脸质量评估概念的可视化。我们提出使用一张图像表达的鲁棒性作为其质量的线索。我们的方法在给定的人脸识别模型的随机子网络的embedding特征的差异的基础上定义了这个鲁棒性。一张随机embedding特征差异较小的图片（左下）展示了高鲁棒性（右边的红色区域）也因此具有高的图片质量。反之，一张随机子网络输出的随机embedding特征差异较大的图片（左上）代表低的鲁棒性（右边蓝色区域）。因此认为它是一张低质量图片。*
 
@@ -38,7 +38,7 @@ Figure 1展示了其工作原理
 
 人脸质量评估的目的是估计一张人脸图像对于人脸识别的适用程度。一张人脸图像的质量应该与其应有的识别效果相对应。本作中，我们的人脸图片质量的定义以对应图片的深度学习embedding为基础。计算一个人脸识别模型的随机的子网络输出的embeddings的差异，我们的方法将这些差异的量级定义为一个鲁棒的度量，亦即图像质量。Figure 2展示了这一方法。
 
-![Figure 2](2.png"Figure 2")
+![Figure 2](2.png "Figure 2")
 
 ### 3.1. Sample-quality estimation
 
@@ -52,7 +52,7 @@ sigmoid函数$\sigma(\cdot)$保证$q\in[0,1]$.
 
 由于已经证明在一个网络上重复使用dropout可以近似高斯过程的不确定性，则欧几里得距离是计算$d(x_i,x_j)$的一个合适的选择。随机embedding向量集合$X$的差异较大意味着表达的鲁棒性较差，也就代表低样本质量$q$. $X$中较低的差异意味着在embedding空间中有较高的鲁棒性，可以认为是高样本质量$q$. Algorithm 1展示了质量预测策略
 
-![Algorithm 1](a1.png"Algorithm 1")
+![Algorithm 1](a1.png "Algorithm 1")
 
 
 
@@ -104,19 +104,19 @@ error versus reject曲线中的人脸验证错误率使用FNMR（false non-match
 
 为了验证数据集的选择，Figure 3展示了使用四种预训练的人脸质量评估模型预测得到的人脸质量分布。
 
-![Figure 3](3.png"Figure 3")
+![Figure 3](3.png "Figure 3")
 
 ColorFeret是在高度限制场景下拍摄的图片，其质量都很高。但是其中包含一些非正脸头部姿态，对于COTS和SER-FIQ(on FaceNet)来说是低质量图片。因为这些受限的变量，我们选择ColorFeret作为训练集。Adience和LFW是非限制场景数据集，对于人脸质量衡量而言，其中大多数人脸图像的质量都远称不上完美，所以将其作为测试集。
 
 
 
-![Figure 4](4.png"Figure 4")
+![Figure 4](4.png "Figure 4")
 
 ## 5. Results
 
 在三个工况点对实验进行验证以考察人脸质量评估在更宽范围潜在应用上的表现。采用欧盟边境管理局欧洲边境和海岸警卫机构（European Border and Coast Guard Agency Frontex）的最好的实践准则，在Figure 4中展示人脸质量评估在FMR为0.001下的表现。Figure 6展示了FMR为0.01下的表现，Figure 7展示了广泛使用的EER下的人脸质量评估表现。而且Figure 5展示了样本照片和各自对应的质量预测值。
 
-![Figure 5](5.png"Figure 5")
+![Figure 5](5.png "Figure 5")
 
 **No-reference image quality approaches**
 

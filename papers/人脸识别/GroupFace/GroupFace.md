@@ -43,7 +43,7 @@ $$
 $$
 \tilde{p}(G_k|x)=\frac{1}{K}\{p(G_k|x)-E_{x\sim \text{data}}[p(G_k|x)]\}+\frac{1}{K}
 $$
-其中第一个$frac{1}{K}$将归一化概率约束到0到1之间。然后期望归一化概率的期望的计算方式为：
+其中第一个$\frac{1}{K}$将归一化概率约束到0到1之间。然后期望归一化概率的期望的计算方式为：
 $$
 \begin{align*}
 E_{x\sim \text{data}}[\tilde{p}(G_k|x)]&=\frac{1}{K}\{E_{x\sim \text{data}}[p(G_k|x)]-E_{x\sim \text{data}}[p(G_k|x)]\}+\frac{1}{K} \\
