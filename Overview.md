@@ -12,19 +12,21 @@
   * Online Deep Clustering for Unsupervised Representation Learning：用于人脸识别模型训练的半监督在线聚类
   * Structure-Aware Face Clustering on a Large-Scale Graph with 10^7 Nodes：STAR-FC，用于大规模数据训练的GCN聚类方法；由于GCN的训练需要把整张图传入模型，这就导致训练数据的规模受显存限制。可以通过随机采样的方式将子图传入模型训练，但是这样无法保证子图包含全局的结构信息。提出一个能同时覆盖局部结构信息和全局结构信息的随机采样法和一套剪枝方案
 
-* ConerNet：TODO
+* CornerNet：TODO
 * DAN：多阶段人脸关键点检测方法，上一个阶段的输出作为下一个阶段的输入，通过多个阶段迭代优化热力图
 * Deep Multi-Center Learning for Face Alignment：将人脸划分为多个子区域分别进行关键点定位，再和并得到最终定位结果
 * DEEP VARIATIONAL INFORMATION BOTTLENECK：变分信息瓶颈，信息瓶颈理论认为神经网络可以提供一个瓶颈用于压缩映射到隐空间的数据量，去掉的是无价值数据或噪声数据；变分信息瓶颈是信息瓶颈理论的变分法近似，具体实现是将隐空间分布（通过KL散度）拉向标准正态分布（在目标函数中加入这个正则化项），以期提升泛化性能
 * Deformable Convolutional Networks：针对传统卷积中固定的几何结构（卷积核）在面对几何变换建模上的天生不足而提出形变卷积和形变RoI pooling用于加强CNN对形变的建模能力。实现方式是通过引入一个特征图上的偏移量来改变感受野区域。
-* CornerNet：TODO
 * LAB：人脸关键点是高度结构化的数据，每个关键点都和一个明确定义的边界相关，所以可以利用面部结构的边界信息（线条）来辅助关键点回归，生成的边界质量越高，关键点回归就越准。
 
 * FAB：一个在模糊视频中利用时间维度上结构一致性的面部关键点检测的框架
 * FocalLoss：提出FocalLoss解决类间不平衡问题，并提出了一个一阶段检测网络RetinaNet
 * FSA-Net：基于SSR-Net的姿态估计方法，加入注意力图
 * GAN：
-  * StyleGAN：TODO
+  * PG-GAN：渐进式生成架构，可以生成高清图片
+  * StyleGAN：通过映射网络得到style向量，在基于PG-GAN的架构上，每一层都引入style控制向量和随机向量，从而生成特征分离度更高的人脸图片
+  * DiscoFaceGAN：引入人脸3DMM的先验，使模型对姿态、表情、光照的分离效果更好
+  * DyStyle：为每一个属性引入一个expert网络做隐空间向量的映射，以期得到更优的分离效果
   
 * GCN：
   * Semi-Supervised Classification with Graph Convolutional Networks：17年图卷积论文，原理和实现形式
@@ -59,7 +61,14 @@
   * SCRFD：检测模型，神经架构搜索
   * SSH：一阶段人脸检测，在不同尺度的特征图上使用检测模块实现多尺度检测
   * YOLO5Face：用YOLOv5进行人脸检测
+
 * 人脸识别
+  * ArcFace：基于softmax loss，引入angular margin
+  * GroupFace：引入人脸特征用来辅助识别，每个属性对应一个映射网络，得到一个对应属性特征，然后将不同属性特征根据预测的概率进行加权得到最终的人脸表达；group是自动生成的（无监督方式）
+  * MagFace：将人脸质量信息融入到人脸特征中（以向量长度反映）
+  * VirFace：TODO
+  * Variational Prototype Learning：TODO
+
 * 人脸质量
   * Deep Tiny Network for Recognition-Oriented Face：
   * EQFace
@@ -75,6 +84,7 @@
     * QAN++
   * SDD-FIQA
   * SER-FIQ
+
 * 人脸重建
   * 3DDFA：
     * v1：
