@@ -26,4 +26,22 @@ $4\times 4$，因此每个patch的特征尺寸为$4\times 4\times 3=48$. 然后�
 ### 3.2. Shifted Window based Self-Attention
 标准Transformer架构和其在图像分类中的变体都应用了全局自注意力机制，也就是计算每个token和其他所有token间的关系。这种全局的计算导致了$n^2$的计算复杂度，使这种方式与很多视觉任务不匹配。
 
-**Self-attention in non-overlapped windows** 考虑性能，提出在局部窗口内计算自注意力。
+**Self-attention in non-overlapped windows** 考虑性能，提出在局部窗口内计算自注意力。对图片使用不重叠的方式均匀划分窗口。假设每个窗口包含$M\times M$个patches，那么一个全局MSA模块的计算复杂度和一个基于窗口的MSA模块的计算复杂度分别为：
+$$
+\Omega(\text{MSA})=4hwC^2+2(hw)^2C, \\
+\Omega(\text{W-MSA})=4hwC^2+2M^2hwC,
+$$
+第一个关于patch数$hw$是平方项，第二个当M固定的情况下则是线性的（M默认为7）。可见全局自注意力无法负担大的$hw$的计算量，而基于窗口的自注意力则可以进行扩展。
+**Shifted window partitioning in successive blocks** 基于窗口的自注意力模块在窗口间缺少连接，从而限制了它的建模能力。为了在保持计算效率的同时引入跨窗口连接，提出一种切换窗口的划分方法，在两个连续的Swin Transformer block之间变换窗口的划分方式。
+如Figure 2中所示，第一个模块使用了一种常规的窗口划分策略，从坐上像素开始，将$8\times 8$的特征图平均划分成$2\times 2$个窗口，每个窗口的尺寸为$4\times 4(M=4)$. 然后下一个模块采取一种与前一层不同的窗口划分策略，通过将窗口移位$(\lfloor \frac{M}{2}\rfloor,\lfloor \frac{M}{2}\rfloor)$个像素得到新的窗口划分。
+通过这种切换窗口划分的方法，连续的Swin Transformer blocks的计算可以表示为
+$$
+\hat{\textbf{z}}^l=\text{W-MSA}(\text{LN}(\textbf{z}^{l-1}))+\textbf{z}^{l-1},\\
+\textbf{z}^l=\text{MLP}(\text{LN}(\hat{\textbf{z}}^l))+\hat{\textbf{z}}^l,\\
+\hat{\textbf{z}}^{l+1}=\text{SW-MSA}(\text{LN}(\textbf{z}^l))+\textbf{z}^l,\\
+\textbf{z}^{l+1}=\text{MLP}(\text{LN}(\hat{\textbf{z}}^{l+1}))+\hat{\textbf{z}}^{l+1},
+$$
+其中$\hat{\textbf{z}}^l,\textbf{z}^l$分别表示第l层的(S)W-MSA和MLP的输出特征。W-MSA和SW-MSA分别代表使用常规和切换窗口划分的MSA模块。
+切换窗口划分的方法在前一层中的相邻不重叠的窗口间引入了连接
+![Figure 4](4.png 'Figure 4')
+**Efficient batch computation for shifted configuration** 切换窗口划分方法的一个问题是会得到更多的窗口，从$\lceil \frac{h}{M}\rceil \times \lceil \frac{w}{M}\rceil$到$(\lceil \frac{h}{M}\rceil+1) \times (\lceil \frac{w}{M}\rceil+1)$，而且有的窗口的尺寸要小于$M\times M$（为了使图像能被M整除，采用了右下padding）. 一个简单的解决方案是将小窗口pad到$M\times M$然后在计算注意力的时候把pad的值mask掉。当常规划分出的窗口数量比较少的时候，例如$2\times 2$个，则这一解决方案的计算量增加会很明显（$2\times 2 \rightarrow 3\times 3$也就是2.25倍）。在此处提出一种更高效的batch计算方法，通过向左上方循环迁移的方式实现，如Figure 4所示。经过这样的变换，一组窗口可能由几个在特征途中不相连的子窗口组成，所以使用mask机制来限制每个子窗口中自注意力的计算。通过循环变换的方式，一组窗口的数量可以与常规划分方法一致，因此同样高效。
