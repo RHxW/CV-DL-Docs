@@ -45,3 +45,9 @@ $$
 切换窗口划分的方法在前一层中的相邻不重叠的窗口间引入了连接
 ![Figure 4](4.png 'Figure 4')
 **Efficient batch computation for shifted configuration** 切换窗口划分方法的一个问题是会得到更多的窗口，从$\lceil \frac{h}{M}\rceil \times \lceil \frac{w}{M}\rceil$到$(\lceil \frac{h}{M}\rceil+1) \times (\lceil \frac{w}{M}\rceil+1)$，而且有的窗口的尺寸要小于$M\times M$（为了使图像能被M整除，采用了右下padding）. 一个简单的解决方案是将小窗口pad到$M\times M$然后在计算注意力的时候把pad的值mask掉。当常规划分出的窗口数量比较少的时候，例如$2\times 2$个，则这一解决方案的计算量增加会很明显（$2\times 2 \rightarrow 3\times 3$也就是2.25倍）。在此处提出一种更高效的batch计算方法，通过向左上方循环迁移的方式实现，如Figure 4所示。经过这样的变换，一组窗口可能由几个在特征途中不相连的子窗口组成，所以使用mask机制来限制每个子窗口中自注意力的计算。通过循环变换的方式，一组窗口的数量可以与常规划分方法一致，因此同样高效。
+
+**Relative position bias** 计算自注意力的时候，为每个head引入一个相对位置偏置$B\in \mathbb{R}^{M^2\times M^2}$:
+$$
+\text{Attention}(Q,K,V)=\text{SoftMax}(QK^T/\sqrt{d}+B)V
+$$
+其中$Q,K,V\in \mathbb{R}^{M^2\times d}$，d是q和k的维度，$M^2$是一个窗口中patches的数量。由于相对位置沿每个轴的取值范围是$[-M+1,M-1]$，因此参数化一个更小的偏置矩阵$\hat{B}\in \mathbb{R}^{(2M-1)\times (2M-1)}$，然后从$\hat{B}$中取B的值
