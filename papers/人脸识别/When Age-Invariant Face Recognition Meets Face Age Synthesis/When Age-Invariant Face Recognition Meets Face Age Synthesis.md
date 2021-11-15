@@ -38,4 +38,39 @@ $$
 1. one-hot编码表明了年龄段级别的年龄变换模式而忽略了不同人之间的差异，尤其是不同性别和人种间的差异
 2. one-hot编码可能无法保证生成人脸的年龄平滑性质
 
-为了解决one-hot编码引起的这些问题，提出一个身份条件模块(ICB, identity conditional block)用于获取身份层面上的年龄变化模式，同时采用共享权重策略来提升合成人脸的年龄平滑性。具体来说，ICB将AFD的身份相关特征作为输入，来学习一个身份层面上的年龄变化模式。然后提出一个权重共享策略来提升合成人脸的年龄平滑性，这样一部分卷积核会在相邻的年龄段间共享参数，如Figure 3(b)所示。这样做的原因是，人脸随时间是逐渐变化的，使用共享的卷积核可以学习到一些相邻年龄段间通用的年龄变化模式。需要注意使用$1\times 1$的卷积将$X_{id}$的维度从512降到128从而降低计算成本。使用一个超参数s来控制相邻年龄段共享多少比例的卷积核，默认设置为1/8，
+为了解决one-hot编码引起的这些问题，提出一个身份条件块(ICB, identity conditional block)用于获取身份层面上的年龄变化模式，同时采用共享权重策略来提升合成人脸的年龄平滑性。具体来说，ICB将AFD的身份相关特征作为输入，来学习一个身份层面上的年龄变化模式。然后提出一个权重共享策略来提升合成人脸的年龄平滑性，这样一部分卷积核会在相邻的年龄段间共享参数，如Figure 3(b)所示。这样做的原因是，人脸随时间是逐渐变化的，使用共享的卷积核可以学习到一些相邻年龄段间通用的年龄变化模式。需要注意使用$1\times 1$的卷积将$X_{id}$的维度从512降到128从而降低计算成本。使用一个超参数s来控制相邻年龄段共享多少比例的卷积核，默认设置为1/8，也就是说相邻的年龄段共享16个卷积核。将ICB堆叠在一起形成身份条件模块(ICM, identity conditional module).
+
+### 3.3. Multi-task Learning Framework
+**Age-invariant face recognition(AIFR)task.** 为了使AFD能够对特征进行鲁棒地分解，使用一个年龄估计任务以及一个人脸识别任务来监督特征分解操作。实际上用$X_{age}$表示年龄估计任务的年龄变化，用$X_{id}$对身份相关信息进行编码。采用一个年龄估计网络A对年龄进行回归，三层全连接，维度512到101再到N，N就是年龄段的数量。用于优化年龄估计的loss函数为：
+$$
+l_{AE}(X_{age})=\mathbb{E}_I[l_{MSE}(\text{DEX}(A(X_{age})),y_{age})+l_{CE}(A(X_{age})W,c_age)]
+$$
+其中$y_{age},c_{age},l_{MSE},l_{CE}$分别是gt年龄，gt年龄段，年龄回归的MSE损失和年龄段分类的交叉熵损失。
+接下来用512的全连接层提取特征向量并用CosFace的loss来监督身份分类任务。同时引入一个跨年领域的对抗学习来促进$X_{id}$称为年龄不变特征，通过一个使用梯度反转层(GRL, gradient reversal layer)的连续域适应方法实现。AIFR的最终loss为：
+$$
+\mathcal{L}^{AIFR}=l_{\text{COSFACE}}(L(X_{id}),y_{id})+\lambda_{age}^{AIFR}\mathcal{L}_{AE}(X_{age})+\lambda_{id}^{AIFR}\mathcal{L}_{AE}(\text{GRL}(X_{id}))
+$$
+其中第一项是CosFace的loss，第二项是年龄估计loss，最后一项是域适应loss，$y_{id}$是身份label，$\lambda_*$控制权重。注意到后两项使用了相同的网络结构，但是使用不同输入分开训练。
+**Face age synthesis(FAS)task.** Figure 2(f)展示了FAS过程。使用身份条件模块ICM从人脸表达$X_{id}$中取得身份层面的年龄条件。然后在学习到的身份层面年龄条件的控制下，使用从编码器E得到的多级高分辨率特征，通过解码器D重构年龄变化的人脸。形式上，将输入人脸$I$渲染到目标年龄段t对应的人脸$I_t$的过程可以表示为:
+$$
+I_t=D(\{E_l(I)^3_{l=1}\},\text{ICM}(X_{id},t))
+$$
+其中l代表从编码器E中不同层提取的不同等级高分辨率特征的下标。
+为了提高生成人脸的视觉质量，使用GAN框架训练FAS任务。采用LSGAN来进行优化：
+$$
+\mathcal{L}_{adv}^{FAS}=\frac{1}{2}\mathbb{E}_I[D_{img}([I_t;C_t])-1]^2
+$$
+其中$C_t$是传统cGAN框架中用于对齐年龄条件的one-hot编码，[;]代表沿通道维度的矩阵拼接。为了保留输入人脸的身份同时提升年龄的准确性，利用编码器E和AFD对FAS任务进行监督。所以可以用端到端的整体方法实现人脸年龄变换，如Figure 2所示。这一过程可表示为：
+$$
+\begin{align}
+X_{age}^t,X_{id}^t &=\text{AFD}(E(I_t)) \\
+\mathcal{L}_{age}^{FAS} &=l_{CE}(X_{age}^t,t) \\
+\mathcal{L}_{id}^{FAS} &=\mathbb{E}_{X_s}\lVert X_{id}^t-X_{id} \rVert_F^2
+\end{align}
+$$
+其中$\lVert \cdot \rVert^F$代表Frobenius norm（类似L2norm，不过是用于矩阵的）
+FAS 任务的最终loss为：
+$$
+\mathcal{L}^{FAS}=\lambda_{adv}^{FAS}\mathcal{L}_{adv}^{FAS}+\lambda_{id}^{FAS}\mathcal{L}_{id}^{FAS}+\lambda_{age}^{FAS}\mathcal{L}_{age}^{FAS}
+$$
+$\lambda$控制权重。
