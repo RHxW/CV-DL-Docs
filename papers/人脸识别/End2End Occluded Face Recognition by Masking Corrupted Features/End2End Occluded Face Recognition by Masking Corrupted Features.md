@@ -46,3 +46,21 @@ Figure 4中展示了K=4的时候的几种m和n的组合。例如红色的模式�
 对于干净的图片（无遮挡），将其对应的模式视为覆盖$0\times 0$的blocks.这种方式使FROM无需依赖于额外的网络来判断图片是否有遮挡。对于无遮挡的图片，Mask Decoder会输出不影响原特征的masks.
 一般来说，对于划分成$K\times K$个blocks的图片，有$(K\times (K+1)/2)^2+1$种遮挡模式。
 #### 3.4.2 Pattern Prediction
+生成的特征图masks应该能够正确预测对应的遮挡模式。实际上在训练阶段，可以获取每张图片的遮挡区域（自监督方式）。对每张图片通过计算IoU得分的方式获取其对应的遮挡模式。经过Occlusion Pattern Predictor得到遮挡特征向量之后，使用传统的softmax loss进行监督：
+$$
+\mathcal{L}_{softmax}=\frac{1}{N}\sum_{i=1}^N-\log p_i=\frac{1}{N}\sum_{i=1}^N-\log \frac{e^{f_{y_i}}}{\sum_{i=1}^C e^{f_j}}
+$$
+其中$p_i$代表$x_i$被正确分类的后验概率。N是训练样本数量，C是类别数量。f代表遮挡特征向量。Figure 5展示了输入图片和对应的预测遮挡模式。
+![Figure 5](5.png 'Figure 5')
+#### 3.4.3 Pattern Regression
+或者与分类的预测方式不同，也可以采用回归2D坐标的方式进行预测。在训练阶段，将遮挡对应的矩形的左上和右下点坐标作为回归的标签r，这样就要求Occlusion Pattern Predictor得到的特征f的维度为4，对应坐标。然后采用L2 loss作为监督：
+$$
+\mathcal{L}_{reg}=\frac{1}{N}\sum_{i=1}^N \lVert r-f \rVert_2
+$$
+与分类任务相比，直接回归坐标的方式能够避免block划分产生的量化误差。但是回归任务更困难。
+
+### 3.5 Overall Training Objective
+$$
+\mathcal{L}_{total}=\mathcal{L}_{margin}+\lambda \mathcal{L}_{pred}
+$$
+margin loss采用CosFace的loss形式。pred loss可以选分类loss或者回归loss
