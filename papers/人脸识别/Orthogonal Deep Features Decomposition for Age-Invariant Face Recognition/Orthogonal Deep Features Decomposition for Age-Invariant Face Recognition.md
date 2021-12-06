@@ -25,5 +25,22 @@ $$
 其中$n_{x_i}$是第i个特征$x_i$的L2范数，$z_i$是对应的第i个年龄标签。$f(x)$是一个用于将$n_{x_i}$和$z_i$联系起来的映射函数。实际使用的是一个线性变换。
 **Learning identity-related component.** 人脸识别系统在实际使用的时候，只会用到归一化特征$\tilde{x}$. 因此与身份相关的部分$x_{id}$的判别能力应该尽可能地强。使用一个与A-Softmax类似的loss函数：
 $$
-
+L_{id}=\frac{1}{M}\sum_{i=1}^{M}-\log (\frac{e^{s\cdot \psi(\theta_{y_i,i})}}{e^{s\cdot \psi(\theta_{y_i,i})}+\sum_{j\ne y_i}e^{s\cdot \cos(\theta_{j,i})}})
 $$
+其中$\psi(\cdot)$定义为$\psi(\theta_{y_i,i})=(-1)^k\cos(m\theta_{y_i,i})-2k,\theta_{y_i,i}$是第i个特征$\tilde{x}_i$和其标签$y_i$的权重向量间的夹角，$\theta_{y_i,i} \in [\frac{k\pi}{m},\frac{(k+1)\pi}{m}],k\in[0.m-1]$.
+最终loss的形式为：
+$$
+L=L_{id}+\lambda L_{age}
+$$
+
+### 2.3 Discussion
+**Compared with HFA based AIFR methods.** 基于HFA(Hidden Factore Analysis)的AIFR方法将特征进行线性分解得到年龄相关和身份相关的部分：$x=m+Ux_{age}+Vx_{id}+\varepsilon$, 其中m是平均特征，$\varepsilon$是噪音项，U和V是年龄和身份对应的变换矩阵。本方法相对于HFA方法的优势为：
+1. 将分解修改为相乘的形式，更合理、超参数更少
+2. 为了配合基于softmax的余弦相似度度量，显式地将身份特征投影到一个超球面上
+3. 端到端方法
+
+![Figure 3](3.png 'Figure 3')
+**Compared with SphereFace.** 我们的方法在SphereFace使用的的A-Softmax基础上利用了年龄信息，使用一个年龄回归任务来监督年龄部分。为了研究这种方案的效果，设计了一个小实验，训练一个CNN模型，其输出特征设定为2维，并令$f(x)=x$，其结果见Figure 3.由此得到结论：
+1. 不同人的特征主要由角度进行区分，也印证了我们的设计思路
+2. A-Softmax和我们的算法都比Softmax的分类边界大
+3. 最重要的是，对于我们的模型，年龄反映在径向长度上（岁数越大，L2norm越大），而另两个模型均没有这一性质。

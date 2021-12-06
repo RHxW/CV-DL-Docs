@@ -40,3 +40,23 @@ $$
 判断为简单的样本，它的负例余弦相似度不变；如果是困难样本，它的负例余弦相似度会变成$t\cos \theta_j+t-1$.
 
 ### 3.2. Adaptive Curricular Learning Loss
+提出的loss函数也在上述的通用框架内，其$G(p(x_i))=1$，正负例的余弦相似度函数如下：
+$$
+T(\cos \theta_{y_i})=\cos(\theta_{y_i}+m), \\
+N(t,\cos \theta_{j})=
+\begin{cases}
+    \cos \theta_j, \qquad\qquad\qquad T(\cos \theta_{y_i})-\cos \theta_j > 0\\
+    \cos \theta_j(t+\cos \theta_j), \qquad T(\cos \theta_{y_i})-\cos \theta_j < 0
+\end{cases}
+$$
+其实正例余弦相似度函数可以使用任意margin-based的loss函数，在这里我们使用的是ArcFace. 如Figure 1所示，困难样本的负例余弦相似度调制系数$I(t, \theta_j)$同时依赖于t和$\theta_j$. 在训练的前期，从简单样本中学习对模型收敛较为有利。所以t应该靠近0，从而$I(\cdot)=t+\cos \theta_j$小于1.因此困难样本的权重得到削减、简单样本得到相应的加强。随着训练过程进行，模型逐渐更加关注困难样本，即t的值应该增加使$I(\cdot)$大于1. 导致困难样本获取更大权重，得以增强。而且在同一个训练阶段中，$I(\cdot)$随$\theta_j$单调递减，因此困难样本能够根据其难度被赋予更大的系数。t的值是自动确定的。
+**Optimization.** 在计算梯度的时候，困难样本的梯度主要受$M(\cdot)=2\cos \theta_j +t$的影响，它由两部分组成：负例余弦相似度$\cos \theta_j$和t的值。如Figure 2所示，一方面系数随着t的增长而增长从而增强困难样本。另一方面，这些系数根据它们的难度$\cos \theta_j$被分配不同的重要性。因此在Figure 2中，M的值在每个训练循环中都呈现一个范围。
+**Adaptive Estimation of t.** 为不同的训练阶段确定不同的t值很重要。理想情况下，t的值可以由模型的训练阶段来确定。通过经验发现正例余弦相似度的平均值是一个较好的指示器。但是基于统计的mini-batch方法通常面临一个问题：当在一个mini-batch中有很多比较极端的数据的时候，则统计数据会有大量噪声，从而导致期望不稳定。一般会用指数移动平均值(EMA, Exponential Moving Average)来解决这一问题。令$r^{(k)}$代表第k个batch的正例余弦相似度均值，可以写作$r^{(k)}=\sum_i\cos \theta_{y_i}$，因此有：
+$$
+t^{(k)}=\alpha r^{(k)} +(1-\alpha) t^{(k-1)},
+$$
+其中$t^0=0, \alpha$是动量参数，设置为0.99. 使用EMA避免了手动调节超参数，而且使困难样本负例余弦相似度$I(\cdot)$能够适应当前训练阶段。总结起来，CurricularFace的loss函数形式为：
+$$
+\mathcal{L}=-\log \frac{e^{s\cos(\theta_{y_i}+m)}}{e^{s\cos(\theta_{y_i}+m)}+\sum_{j=1,j\ne y_i}^n e^{sN(t^{(k)},\cos\theta_j)}}
+$$
+其中$N(t^{(k)},\cos\theta_j)$在前面已经定义。整个训练过程如Algorithm 1所示。
