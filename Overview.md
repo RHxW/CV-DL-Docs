@@ -46,6 +46,10 @@
 * SSD：Todo
 * SSR-Net：将年龄估计问题用多分类+分类结果回归的方式解决
 * Synthesizing Normalized Faces from Facial Identity Features：从特征重构归一化人脸
+* Transformer：
+  * Attention Is All You Need：原始transformer
+  * Swin Transformer：TODO
+  * Swin TransformerV2：TODO
 * Visualizing and Understanding Convolutional Networks：TODO
 * WingLoss：为了解决关键点定位中关键点位置回归loss对小误差不敏感的特点而设计的loss函数
 * YOLO：
@@ -64,10 +68,20 @@
 
 * 人脸识别
   * ArcFace：基于softmax loss，引入angular margin
+  * CenterLoss:TODO
+  * CosFace：TODO
+  * CurricularFace：引入课程学习，并且能够自适应地调节超参数
+  * End2End Occluded Face Recognition by Masking Corrupted Features：从特征图上将由遮挡引起的损坏部分去除，本质是一种空间注意力机制，由遮挡引导
   * GroupFace：引入人脸特征用来辅助识别，每个属性对应一个映射网络，得到一个对应属性特征，然后将不同属性特征根据预测的概率进行加权得到最终的人脸表达；group是自动生成的（无监督方式）
+  * LARNet：证明了在特征空间中存在一种映射等价于3D空间中的人脸旋转，因此可以在特征空间对人脸姿态进行调整，从而提升不同姿态人脸的识别能力
   * MagFace：将人脸质量信息融入到人脸特征中（以向量长度反映）
-  * VirFace：TODO
+  * Orthogonal Deep Features Decomposition for Age-Invariant Face Recognition：跨年龄人脸识别；将人脸特征分成身份和年龄两个相互正交的部分，然后用对年龄鲁棒的身份特征进行跨年龄人脸识别
+  * Partial FC：分布式训练策略+softmax 10%负类近似方法
+  * SphereFace：TODO
   * Variational Prototype Learning：TODO
+  * VirFace：TODO
+  * Virtual Class Enhanced Discriminative Embedding Learning：TODO
+  * When Age-Invariant Face Recognition Meets Face Age Synthesis：生成方法辅助跨年龄人脸识别
 
 * 人脸质量
   * Deep Tiny Network for Recognition-Oriented Face：
@@ -76,6 +90,7 @@
   * FaceQnet
     * v0
     * v1
+  * Harnessing Unrecognizable Faces for Face Recognition：认为所有识别能力低（质量低）的人脸图片在特征空间会聚到一起，所以用聚类方法就可以找出来（像脑子有点毛病一样的论文）
   * Inducing Predictive Uncertainty Estimation for Face Recognition
   * IQA
     * RankIQA
@@ -83,11 +98,16 @@
     * QAN
     * QAN++
   * SDD-FIQA
-  * SER-FIQ
+  * SER-FIQ：随机子网络
 
 * 人脸重建
+  * 2DASL：
   * 3DDFA：
     * v1：
     * v2：
-  * 2DASL：
+  * A Morphable Model For The Synthesis Of 3D Faces
+  * Deep 3D Portrait from a Single Image
   * PRNet：
+  * Pseudo Facial Generation with Extreme Poses for Face Recognition：（脑有病一样的论文）
+  * Rotate and Render
+  * Towards High-Fidelity 3D Face Reconstruction from In-the-Wild Images Using Graph Convolutional Networks：利用GCN提升纹理精细程度的方法
