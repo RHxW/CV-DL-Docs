@@ -62,4 +62,37 @@ $$
 ### 3.3. Multi-Task High-Level Adaptation
 大多数特征匹配的方法基于对齐、伪标签或者对抗学习。前两个解决不了太大的gap，对抗学习则不稳定。我们选择使用图片自身的信息，也就是用自监督学习的方式。通过强制分类器的跨域共享实现将不同域的特征映射到同一个高维子空间。
 
-**Closing E(L) and H.** 
+**Closing E(L) and H.** 通过基于语义的自监督学习设计的中间任务可以让模型学习理解物体的空间语义信息。我们使用拼图任务作为自监督任务，我们也尝试过旋转以及旋转+拼图，但是测试后发现只用拼图的效果最好。一种可能的解释是WIDER FACE数据集中的很多人脸是画作或广告中的人脸，本身角度就比较奇怪，因此用预测角度的中间任务效果不好。
+
+将一张图片分成3*3，并设定序列数量为30，即30个分类任务。用$p_{jig}$代表序列标签，$\mathcal{L}_c$代表交叉熵损失，有：
+$$
+\mathcal{L}_{jig}^{E(L)}=\mathcal{L}_c(F_{jig}^{E(L)},p_{jig}^{E(L)}) \\
+\mathcal{L}_{jig}^H=\mathcal{L}_c(F_{jig}^H,p_{jig}^H)
+$$
+其中$F_{jig}$代表对应domain提取的特征。E(L)和H共享分类heads，这样可以强制语义特征映射到同一个空间，从而缩小高层的gaps，最终的loss就是上面两项相加：
+$$
+\mathcal{L}_{E(L)\leftrightarrow H}=\mathcal{L}_{jig}^{E(L)}+\mathcal{L}_{jig}^H
+$$
+
+**Closing H and D(H).** 对比学习的思想是：给定一个序列v，识别它的正样本对和负样本对。目标函数：
+$$
+\mathcal{L}_q=-\log \Big[\frac{\sigma(v,v^+)}{\sigma(v,v^+)+\sum_{n=1}^N\sigma(v,v_n^-)} \Big] \\
+\sigma(x,y)=\exp(x\cdot y/ \tau)
+$$
+其中$\tau$是超参数。
+目标函数：
+$$
+\tilde{\mathcal{L}}_{H\leftrightarrow D(H)}=
+\mathcal{L}_q(H,D(H)^+,H^-) +
+\mathcal{L}_q(D(H),H^+,D(H)^-)
+$$
+
+**Enhancing E(L).** 还发现通过对比学习的方式增强E(L)的特征是有益的：
+$$
+\mathcal{L}_{E(L)\uparrow}=\mathcal{L}_q(E(L),E(L)^+,E(L)^-)
+$$
+
+**Final objective.** 多任务方式的最终目标函数：
+$$
+\mathcal{L}=\lambda_{det}\mathcal{L}_{det}+\lambda_{E(L)\leftrightarrow H}\mathcal{L}_{E(L)\leftrightarrow H}+\lambda_{H\leftrightarrow D(H)}\mathcal{L}_{H\leftrightarrow D(H)}+\lambda_{E(L)\uparrow}\mathcal{L}_{E(L)\uparrow}
+$$
