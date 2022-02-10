@@ -1,7 +1,7 @@
 # A Morphable Model For The Synthesis Of 3D Faces
 
 ## 3 Morphable 3D Face Model
-变形模型基于一个3D人脸数据集。在不同的人脸之间实现变形需要所有人连的完全对应。
+变形模型基于一个3D人脸数据集。在不同的人脸之间实现变形需要所有人脸的完全对应。
 
 一共有m个人脸，每个人脸的三维信息中有n个顶点
 形状向量$S=(X_1,Y_1,Z_1,X_2,Y_2,Z_2,...,X_n,Y_n,Z_n)^T\in \mathbb{R}^{3n}$，n个顶点的三维坐标
