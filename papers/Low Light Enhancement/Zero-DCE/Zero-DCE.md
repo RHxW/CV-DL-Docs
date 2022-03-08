@@ -72,5 +72,12 @@ $$
 
 **Illimination Smoothness Loss.** 为了保留相邻像素间的单调性值，为每个曲线参数图$\mathcal{A}$加入一个光照平滑loss：
 $$
-L_{tvA}=\frac{1}{N}\sum_{n=1}^N \sum_{c\in \xi}
+L_{tvA}=\frac{1}{N}\sum_{n=1}^N \sum_{c\in \xi}(|\nabla_x \mathcal{A}_n^c|+|\nabla_y \mathcal{A}_n^c|)^2, \xi=\{R, G, B\}, \qquad(7)
 $$
+其中N是迭代次数，水平和竖直梯度标志为x和y
+
+**Total Loss.** 完整loss为：
+$$
+L_{total}=L_{spa}+L_{exp}+W_{col}L_{col}+W_{tvA}L_{tvA}
+$$
+其中的W用于对loss进行平衡
