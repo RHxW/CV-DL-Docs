@@ -64,4 +64,13 @@ L_{exp}=\frac{1}{M}\sum_{k=1}^M|Y_k-E|, \qquad(5)
 $$
 其中M代表尺寸为$16\times 16$的不重合的局部区域
 
-**Color Constancy Loss.** 根据灰度空间颜色一致性假设，
+**Color Constancy Loss.** 根据灰度空间颜色一致性假设，即每个通道在整张图片的范围内的平均值趋向于灰色这一假设，设计了色彩一致性loss并构建了校正后三通道之间的关系：
+$$
+L_{col}=\sum_{\forall (p,q)\in \varepsilon}(J^p-J^q)^2, \varepsilon=\{(R, G),(R, B), (G, B)\}, \qquad (6)
+$$
+其中$J^p$代表增强后图片p通道的平均强度值。
+
+**Illimination Smoothness Loss.** 为了保留相邻像素间的单调性值，为每个曲线参数图$\mathcal{A}$加入一个光照平滑loss：
+$$
+L_{tvA}=\frac{1}{N}\sum_{n=1}^N \sum_{c\in \xi}
+$$
